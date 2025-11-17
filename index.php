@@ -1,14 +1,81 @@
 <?php
-// session_start();
-include('php/config.php');
-
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
+include('config/config.php');
+
 if (!isset($_SESSION['email'])){
     header("Location: auth/login.php");
     exit();
+}
+
+// Get user information
+$userEmail = $_SESSION['email'];
+$userRole = $_SESSION['role'] ?? 'employee';
+$userDepartment = $_SESSION['department'] ?? null;
+
+// Fetch user's full information
+$userQuery = "SELECT * FROM users WHERE email = ?";
+$stmt = $conn->prepare($userQuery);
+$stmt->bind_param("s", $userEmail);
+$stmt->execute();
+$userResult = $stmt->get_result();
+$userData = $userResult->fetch_assoc();
+
+// Fetch department exams (exams from user's department)
+$departmentExams = [];
+if ($userDepartment) {
+    $deptExamQuery = "SELECT e.*, s.F_Name, s.L_Name, s.Email as examiner_email, d.D_Name
+                      FROM exam e
+                      JOIN staff s ON e.S_ID = s.S_ID
+                      JOIN department d ON s.D_ID = d.D_ID
+                      WHERE s.D_ID = ?
+                      ORDER BY e.E_ID DESC";
+    $stmt = $conn->prepare($deptExamQuery);
+    $stmt->bind_param("s", $userDepartment);
+    $stmt->execute();
+    $departmentExams = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+// Fetch general exams (all exams or exams from other departments - simplified version)
+$generalExamQuery = "SELECT e.*, s.F_Name, s.L_Name, s.Email as examiner_email, d.D_Name
+                     FROM exam e
+                     JOIN staff s ON e.S_ID = s.S_ID
+                     JOIN department d ON s.D_ID = d.D_ID
+                     ORDER BY e.E_ID DESC
+                     LIMIT 6";
+$generalExams = $conn->query($generalExamQuery)->fetch_all(MYSQLI_ASSOC);
+
+// Note: Since the database schema doesn't have a registration table,
+// we'll simulate registered and attended exams based on the attends table
+// Fetch registered exams (for now, we'll show all available exams as "available to register")
+$registeredExams = [];
+
+// Fetch attended exams (exams the user has completed)
+$attendedExams = [];
+// First, check if user exists in exam_candidate table
+$candidateCheck = "SELECT C_ID FROM exam_candidate WHERE Email = ?";
+$stmt = $conn->prepare($candidateCheck);
+$stmt->bind_param("s", $userEmail);
+$stmt->execute();
+$candidateResult = $stmt->get_result();
+
+if ($candidateResult->num_rows > 0) {
+    $candidate = $candidateResult->fetch_assoc();
+    $candidateId = $candidate['C_ID'];
+
+    $attendedQuery = "SELECT e.*, s.F_Name, s.L_Name, d.D_Name, a.Result
+                      FROM attends a
+                      JOIN exam e ON a.E_ID = e.E_ID
+                      JOIN staff s ON e.S_ID = s.S_ID
+                      JOIN department d ON s.D_ID = d.D_ID
+                      WHERE a.C_ID = ?
+                      ORDER BY a.Result DESC";
+    $stmt = $conn->prepare($attendedQuery);
+    $stmt->bind_param("s", $candidateId);
+    $stmt->execute();
+    $attendedExams = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 ?>
 
@@ -17,117 +84,327 @@ if (!isset($_SESSION['email'])){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Dashboard - ExamPro</title>
+    <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <?php
-        include ("includes/header.php");
-    ?>
-    <div class="topCont">
-        <div class="nav-bar">
-            <div class="search">
-                <input type="search" id="searchBar" placeholder="Search Exams...">
-                <button type="button"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="mode">
-                <!-- <input type="button" id="log" onClick="logOut()" value="Log Out"> -->
-                <a href="logout.php"><button type="button">logOut<i class="fa fa-sign-out-alt"></i></button></a>
-            </div>
-        </div>
-        <div class="intro">
-            <div class="topIntro">
-                <h1>The reliable exam <br> platform.</h1><br>
-                <p>Secure. Easy to use. Dedicated to your success.</p><br>
-                <!-- <input type="button" value="Register Exam" onClick="openPage()" id="register"> -->
-                <a href="registerExam.php"><button type="button">Register Here</button></a>
-            </div>
-            <div class="botIntro">
-                <a href="Exams.html">
-                    <img src="img/exampro.webp" alt="exampro">
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="botCont">
-        <div class="aboutCont">
-            <h1>Contact when you need Us</h1>
+    <?php include("includes/header.php"); ?>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
             <div class="container">
-                <div class="card about-us">
-                    <h2>About Us</h2>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-                    <a href="about.php">Visit About Us <i class="fas fa-external-link-alt"></i></a>
-                </div>
-                <div class="card contact-us">
-                    <h2>Contact Us</h2>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-                    <a href="contact.php">Visit Contact Us <i class="fas fa-external-link-alt"></i></a>
-                </div>
-                <div class="card term">
-                    <h2>Terms & Conditions</h2>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-                    <a href="terms.php">View Terms & Conditions <i class="fas fa-external-link-alt"></i></a>
-                </div>
-                <div class="card policy">
-                    <h2>Privacy & Policies</h2>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-                    <a href="privacy.php">View Privacy & Policies <i class="fas fa-external-link-alt"></i></a>
-                </div>
-            </div>
-        </div>
-        <div class="featCont">
-            <h1>Features of the ExamPro</h1>
-            <div class="features">
-                <div class="feature secure">
-                    <h2>ExamPro</h2>
-                    <h2>Secure</h2>
-                    <p>Academic integrity can never be compromised.</p>
-                    <ul>
-                        <li><i class="fas fa-check"></i>Lockdown application</li>
-                        <li><i class="fas fa-check"></i>Closed sourced code (highest security)</li>
-                        <li><i class="fas fa-check"></i>Third-party security audits</li>
-                        <li><i class="fas fa-check"></i>Third-party penetration tests</li>
-                        <li><i class="fas fa-check"></i>Online proctoring</li>
-                        <li><i class="fas fa-check"></i>EU and US servers</li>
-                        <li><i class="fas fa-check"></i>GDPR Compliant</li>
-                    </ul>
-                </div>
-                <div class="feature reliable">
-                    <h2>ExamPro</h2>
-                    <h2>Reliable</h2>
-                    <p>Our customers can't afford lost exams or lost answers.</p>
-                    <ul>
-                        <li><i class="fas fa-check"></i>Cloud-based (99.9% uptime)</li>
-                        <li><i class="fas fa-check"></i>Offline exam compatibility</li>
-                        <li><i class="fas fa-check"></i>Autosave every 10 seconds</li>
-                        <li><i class="fas fa-check"></i>Automatic updates</li>
-                        <li><i class="fas fa-check"></i>World-class support</li>
-                        <li><i class="fas fa-check"></i>Proprietary technology</li>
-                        <li><i class="fas fa-check"></i>Zero maintenance</li>
-                    </ul>
-                </div>
-                <div class="feature easy">
-                    <h2>ExamPro</h2>
-                    <h2>Easy to use</h2>
-                    <p>Easy-implemented online exam system that supports the whole examination lifecycle.</p>
-                    <ul>
-                        <li><i class="fas fa-check"></i>LMS integration through LTI</li>
-                        <li><i class="fas fa-check"></i>User friendly interface</li>
-                        <li><i class="fas fa-check"></i>High adoption</li>
-                        <li><i class="fas fa-check"></i>Modern accessibility tools</li>
-                        <li><i class="fas fa-check"></i>Anonymous grading</li>
-                        <li><i class="fas fa-check"></i>External tools</li>
-                        <li><i class="fas fa-check"></i>QTI import</li>
-                        <li><i class="fas fa-check"></i>Collaborative grading</li>
-                    </ul>
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="hero-title">Welcome to ExamPro</h1>
+                        <p class="hero-subtitle">The reliable exam platform. Secure. Easy to use. Dedicated to your success.</p>
+                        <div class="hero-actions">
+                            <a href="exams/registerExam.php" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus"></i>
+                                Register for Exam
+                            </a>
+                            <a href="exams/attemptExam.php" class="btn btn-outline btn-lg">
+                                <i class="fas fa-pen-to-square"></i>
+                                Take Exam
+                            </a>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <img src="img/exampro.webp" alt="ExamPro Platform" onerror="this.style.display='none'">
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <?php
-        include ("php/footer.php");
-    ?>
-    <script src="mainScript.js"></script>
+        </section>
+
+        <!-- User Stats Section -->
+        <section class="stats-section">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number"><?php echo count($departmentExams); ?></h3>
+                            <p class="stat-label">Department Exams</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #D1FAE5; color: var(--secondary);">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number"><?php echo count($generalExams); ?></h3>
+                            <p class="stat-label">Available Exams</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #FEF3C7; color: var(--warning);">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number"><?php echo count($registeredExams); ?></h3>
+                            <p class="stat-label">Registered Exams</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #FEE2E2; color: var(--error);">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number"><?php echo count($attendedExams); ?></h3>
+                            <p class="stat-label">Completed Exams</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Department Exams Section -->
+        <?php if (count($departmentExams) > 0): ?>
+        <section class="exams-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-building"></i>
+                        My Department Exams
+                    </h2>
+                    <p class="section-subtitle">Exams available in your department</p>
+                </div>
+                <div class="exams-grid">
+                    <?php foreach ($departmentExams as $exam): ?>
+                    <div class="exam-card">
+                        <div class="exam-card-header">
+                            <h3 class="exam-title"><?php echo htmlspecialchars($exam['E_Name']); ?></h3>
+                            <span class="badge badge-info"><?php echo htmlspecialchars($exam['D_Name']); ?></span>
+                        </div>
+                        <div class="exam-card-body">
+                            <div class="exam-meta">
+                                <div class="exam-meta-item">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span><?php echo htmlspecialchars($exam['F_Name'] . ' ' . $exam['L_Name']); ?></span>
+                                </div>
+                                <div class="exam-meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span><?php echo htmlspecialchars($exam['Duration']); ?></span>
+                                </div>
+                                <div class="exam-meta-item">
+                                    <i class="fas fa-hashtag"></i>
+                                    <span>ID: <?php echo htmlspecialchars($exam['E_ID']); ?></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="exam-card-footer">
+                            <a href="exams/registerExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-primary">
+                                <i class="fas fa-user-plus"></i>
+                                Register
+                            </a>
+                            <a href="exams/attemptExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-outline">
+                                <i class="fas fa-info-circle"></i>
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </section>
+        <?php endif; ?>
+
+        <!-- General/Available Exams Section -->
+        <section class="exams-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-list-alt"></i>
+                        All Available Exams
+                    </h2>
+                    <p class="section-subtitle">Browse all exams across departments</p>
+                </div>
+                <div class="exams-grid">
+                    <?php if (count($generalExams) > 0): ?>
+                        <?php foreach ($generalExams as $exam): ?>
+                        <div class="exam-card">
+                            <div class="exam-card-header">
+                                <h3 class="exam-title"><?php echo htmlspecialchars($exam['E_Name']); ?></h3>
+                                <span class="badge badge-success"><?php echo htmlspecialchars($exam['D_Name']); ?></span>
+                            </div>
+                            <div class="exam-card-body">
+                                <div class="exam-meta">
+                                    <div class="exam-meta-item">
+                                        <i class="fas fa-user-tie"></i>
+                                        <span><?php echo htmlspecialchars($exam['F_Name'] . ' ' . $exam['L_Name']); ?></span>
+                                    </div>
+                                    <div class="exam-meta-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span><?php echo htmlspecialchars($exam['Duration']); ?></span>
+                                    </div>
+                                    <div class="exam-meta-item">
+                                        <i class="fas fa-hashtag"></i>
+                                        <span>ID: <?php echo htmlspecialchars($exam['E_ID']); ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="exam-card-footer">
+                                <a href="exams/registerExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-user-plus"></i>
+                                    Register
+                                </a>
+                                <a href="exams/attemptExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-outline">
+                                    <i class="fas fa-info-circle"></i>
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>No Exams Available</h3>
+                            <p>There are currently no exams available. Please check back later.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </section>
+
+        <!-- Attended Exams Section -->
+        <?php if (count($attendedExams) > 0): ?>
+        <section class="exams-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-line"></i>
+                        My Completed Exams
+                    </h2>
+                    <p class="section-subtitle">View your exam results and performance</p>
+                </div>
+                <div class="exams-grid">
+                    <?php foreach ($attendedExams as $exam): ?>
+                    <div class="exam-card completed">
+                        <div class="exam-card-header">
+                            <h3 class="exam-title"><?php echo htmlspecialchars($exam['E_Name']); ?></h3>
+                            <span class="badge badge-success">
+                                <?php echo number_format($exam['Result'], 2); ?>%
+                            </span>
+                        </div>
+                        <div class="exam-card-body">
+                            <div class="exam-meta">
+                                <div class="exam-meta-item">
+                                    <i class="fas fa-building"></i>
+                                    <span><?php echo htmlspecialchars($exam['D_Name']); ?></span>
+                                </div>
+                                <div class="exam-meta-item">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span><?php echo htmlspecialchars($exam['F_Name'] . ' ' . $exam['L_Name']); ?></span>
+                                </div>
+                                <div class="exam-meta-item">
+                                    <i class="fas fa-trophy"></i>
+                                    <span><?php echo $exam['Result'] >= 75 ? 'Pass' : 'Review Required'; ?></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="exam-card-footer">
+                            <a href="exams/result.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i>
+                                View Result
+                            </a>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </section>
+        <?php endif; ?>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <div class="container">
+                <div class="section-header text-center">
+                    <h2 class="section-title">Why Choose ExamPro?</h2>
+                    <p class="section-subtitle">Comprehensive features for a seamless examination experience</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Secure & Reliable</h3>
+                        <p class="feature-description">
+                            Academic integrity is our priority. Cloud-based platform with 99.9% uptime and advanced security measures.
+                        </p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i>Encrypted data transmission</li>
+                            <li><i class="fas fa-check"></i>GDPR Compliant</li>
+                            <li><i class="fas fa-check"></i>Regular security audits</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background-color: #D1FAE5; color: var(--secondary);">
+                            <i class="fas fa-laptop-code"></i>
+                        </div>
+                        <h3 class="feature-title">Easy to Use</h3>
+                        <p class="feature-description">
+                            User-friendly interface designed for students, examiners, and administrators with high adoption rates.
+                        </p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i>Intuitive dashboard</li>
+                            <li><i class="fas fa-check"></i>Quick registration</li>
+                            <li><i class="fas fa-check"></i>Instant results</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon" style="background-color: #FEF3C7; color: var(--warning);">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h3 class="feature-title">24/7 Support</h3>
+                        <p class="feature-description">
+                            World-class support team ready to assist you. Get help when you need it most.
+                        </p>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i>Live chat support</li>
+                            <li><i class="fas fa-check"></i>Comprehensive documentation</li>
+                            <li><i class="fas fa-check"></i>Quick response time</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Links Section -->
+        <section class="quick-links-section">
+            <div class="container">
+                <div class="quick-links-grid">
+                    <a href="aboutUs.php" class="quick-link-card">
+                        <i class="fas fa-info-circle"></i>
+                        <h3>About Us</h3>
+                        <p>Learn more about ExamPro and our mission</p>
+                    </a>
+                    <a href="contactUs.php" class="quick-link-card">
+                        <i class="fas fa-envelope"></i>
+                        <h3>Contact Us</h3>
+                        <p>Get in touch with our support team</p>
+                    </a>
+                    <a href="terms.php" class="quick-link-card">
+                        <i class="fas fa-file-contract"></i>
+                        <h3>Terms & Conditions</h3>
+                        <p>Read our terms of service</p>
+                    </a>
+                    <a href="privacy.php" class="quick-link-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Privacy Policy</h3>
+                        <p>Understand how we protect your data</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <?php include("includes/footer.php"); ?>
+
+    <script src="scripts/index.js"></script>
 </body>
 </html>
