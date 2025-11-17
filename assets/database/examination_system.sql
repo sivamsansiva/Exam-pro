@@ -1,3 +1,5 @@
+Drop DATABASE if exists exam_system;
+
 CREATE DATABASE exam_system;
 
 use exam_system;
@@ -7,6 +9,20 @@ D_ID varchar(10) NOT NULL,
 D_Name varchar(40) NOT NULL,
 No_of_Employees varchar(3) NOT NULL,
 constraint department_pk primary key (D_ID)
+);
+
+CREATE TABLE users (
+id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+email VARCHAR(255) NOT NULL,
+password_hash VARCHAR(255) NOT NULL,
+role ENUM('employee','examiner','manager','admin') NOT NULL DEFAULT 'employee',
+department VARCHAR(10) DEFAULT NULL,
+created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CONSTRAINT users_pk PRIMARY KEY (id),
+CONSTRAINT users_email_unique UNIQUE (email),
+INDEX users_department_idx (department),
+CONSTRAINT users_department_fk FOREIGN KEY (department) REFERENCES department(D_ID) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE exam_candidate (
@@ -115,15 +131,15 @@ S_phone_no varchar(10) NOT NULL,
 constraint staff_phone_no_pk primary key (S_ID,S_phone_no)
 );
 
-INSERT INTO department (D_ID, D_Name,No_of_Employees) 
-VALUES 
+INSERT INTO department (D_ID, D_Name,No_of_Employees)
+VALUES
 ('D001', 'Human Resources', 25),
 ('D002', 'Finance', 30),
 ('D003', 'IT', 45),
 ('D004', 'Marketing', 20),
 ('D005', 'Sales', 35);
 
-INSERT INTO exam_candidate (C_ID, F_Name, L_Name, D_ID, DOB, NIC, Email, Age, Gender, Password) 
+INSERT INTO exam_candidate (C_ID, F_Name, L_Name, D_ID, DOB, NIC, Email, Age, Gender, Password)
 VALUES
 ('C001', 'John', 'Doe', 'D001', '1995-05-15', '123456789V', 'john.doe@gmail.com', 29, 'Male','password1234'),
 ('C002', 'Jane', 'Smith', 'D002', '1998-08-22', '987654321V', 'jane.smith@gmail.com', 26, 'Female','password1564'),
@@ -131,7 +147,7 @@ VALUES
 ('C004', 'Emily', 'Davis', 'D004', '2000-02-14', '321654987V', 'emily.davis@gmail.com', 24, 'Female','password1894'),
 ('C005', 'David', 'Wilson', 'D005', '1997-07-07', '789123456V', 'david.wilson@gmail.com', 27, 'Male','password4564');
 
-INSERT INTO staff (S_ID, F_Name, L_Name, D_ID, DOB, NIC, Email, Gender, Age, Role, Password) 
+INSERT INTO staff (S_ID, F_Name, L_Name, D_ID, DOB, NIC, Email, Gender, Age, Role, Password)
 VALUES
 ('S001', 'John', 'Doe', 'D001', '1985-05-15', '123456789V', 'johmn@gmail.com', 'Male', 39, 'Manager','password1474'),
 ('S002', 'Jane', 'Smith', 'D001', '1990-08-22', '987654321V', 'jsvol@gmail.com', 'Female', 34, 'Examiner','password1954'),
@@ -139,49 +155,49 @@ VALUES
 ('S004', 'Michael', 'Brown', 'D004', '1992-03-05', '789123456V', 'bshbshj@gmail.com', 'Male', 32, 'Admin','password1674'),
 ('S005', 'Sarah', 'Davis', 'D003', '1987-07-19', '321654987V', 'staff@gmail.com', 'Female', 37, 'Examiner','password2344');
 
-INSERT INTO exam (E_ID, E_Name , Q_password, Duration, S_ID) 
-VALUES 
+INSERT INTO exam (E_ID, E_Name , Q_password, Duration, S_ID)
+VALUES
 ('E001', 'Exam 1' , 'pass123', '01:30:00', 'S001'),
 ('E002', 'Exam 2' ,'secure456', '02:00:00', 'S002'),
 ('E003', 'Exam 3' ,'exam789', '01:45:00', 'S003'),
 ('E004', 'Exam 4' ,'test321', '02:30:00', 'S004'),
-('E005', 'Exam 5' ,'quiz654', '01:00:00', 'S005'); 
+('E005', 'Exam 5' ,'quiz654', '01:00:00', 'S005');
 
-INSERT INTO attends (E_ID,C_ID,Result) 
-VALUES 
+INSERT INTO attends (E_ID,C_ID,Result)
+VALUES
 ('E001', 'C001', 85.50),
 ('E002', 'C002', 90.75),
 ('E003', 'C003', 78.25),
 ('E004', 'C004', 88.00),
 ('E005', 'C005', 92.50);
-INSERT INTO report (Report_ID, R_Date, Details, S_ID) 
+INSERT INTO report (Report_ID, R_Date, Details, S_ID)
 VALUES
 ('R001', '2024-09-01', 'Monthly sales report', 'S001'),
 ('R002', '2024-09-15', 'Quarterly performance review', 'S002'),
 ('R003', '2024-09-20', 'Annual financial summary', 'S003');
 INSERT INTO feedback (Feedback_ID, C_ID, Date, F_Details)
-VALUES 
+VALUES
 ('F001', 'C001', '2024-09-29', 'Very helpful during the exam process'),
 ('F002', 'C002', '2024-09-28', 'Explained the exam format clearly'),
 ('F003', 'C003', '2024-09-27', 'Provided excellent guidance on the procedures'),
 ('F004', 'C004', '2024-09-26', 'Was available for support when needed'),
 ('F005', 'C005', '2024-09-25', 'Gave thorough and clear instructions');
 INSERT INTO complaint (C_No, C_ID, C_Date, C_Title, C_Details)
-VALUES 
+VALUES
 ('CMP001', 'C001', '2024-09-29', 'Late Exam Start', 'The exam started 30 minutes late without prior notice.'),
 ('CMP002', 'C002', '2024-09-28', 'Unclear Instructions', 'The staff did not provide clear instructions for the exam.'),
 ('CMP003', 'C003', '2024-09-27', 'Technical Issues', 'There were multiple technical issues during the exam process.'),
 ('CMP004', 'C004', '2024-09-26', 'Inadequate Support', 'Support was insufficient during the exam registration process.'),
 ('CMP005', 'C005', '2024-09-25', 'Unprofessional Behavior', 'The staff was unprofessional and rude during the exam.');
-INSERT INTO exam_candidate_phone_no (C_ID, Phone_no) 
-VALUES 
+INSERT INTO exam_candidate_phone_no (C_ID, Phone_no)
+VALUES
 ('C001', 9876543210),
 ('C002', 8765432109),
 ('C003', 7654321098),
 ('C004', 6543210987),
 ('C005', 5432109876);
-INSERT INTO staff_phone_no (S_ID, S_phone_no) 
-VALUES 
+INSERT INTO staff_phone_no (S_ID, S_phone_no)
+VALUES
 ('S001', 1234567890),
 ('S002', 2345678901),
 ('S003', 3456789012),
@@ -189,7 +205,7 @@ VALUES
 ('S005', 5678901234);
 
 INSERT INTO question (`Q_ID`, `E_ID`, `Q_content`, `Answer`)
-VALUES 
+VALUES
 ('Q001', 'E001', 'What does HTML stand for?', 'HyperText Markup Language'),
 ('Q002', 'E002', 'Who is known as the father of the computer?', 'Charles Babbage'),
 ('Q003', 'E003', 'What is the time complexity of binary search?', 'O(log n)'),
