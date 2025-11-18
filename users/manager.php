@@ -33,7 +33,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                     <h2>Manager Profile</h2>
                 </div>
                 <div class="profile-section" id="profile-section">
-                    
+
                  <?php
                  $session['Role']="Manager";
                     $sql1 = "SELECT * FROM staff WHERE Role='Manager'";
@@ -64,7 +64,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                             $phoneNo = isset($_POST['phone']) ? $_POST['phone'] : "";
                             // Update the candidate information
                             $sql2 = "UPDATE staff SET F_Name='$Fname', L_Name='$Lname', Gender='$gender', Email='$Email', DOB='$DOB' WHERE Role='Admin'";
-                       
+
                             $result = mysqli_query($conn, $sql2);
 
                         $sql2="UPDATE  staff_phone_no SET S_phone_no='$phoneNo' WHERE S_ID='$Sid'";
@@ -94,14 +94,14 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
 
             <label>Date of Birth: </label><br>
             <input type="date" name="dob" value="<?php echo $DOB; ?>" required><br>
-            
-                   
+
+
             <center>
-            <input type="submit" name="submit" id="submitbtn" value="Update"><br> 
+            <input type="submit" name="submit" id="submitbtn" value="Update"><br>
             </center>
             </form>
                 </div>
-            
+
             </section>
     <div>
             <!-- ================Manage Exams Section====================-->
@@ -117,7 +117,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                             <th>Exam ID</th>
                             <th>Exam Name</th>
                             <th>Password</th>
-                            <th>Duration</th> 
+                            <th>Duration</th>
                             <th>Uploaded by</th>
                             <th width= "18%">Operations</th>
                         </tr>
@@ -130,7 +130,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
 
                             // Execute the query
                             $result = mysqli_query($conn, $sql);
-                            
+
                             // Check if the query returns any rows
                             if ($result && mysqli_num_rows($result) > 0) {
                                 // Loop through the results
@@ -143,7 +143,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
 
                                     // Output the table rows
                                     echo '<tr>
-                                          <td>' . $eid. '</td>                            
+                                          <td>' . $eid. '</td>
                                           <td>' . $examname . '</td>
                                           <td>' . $password . '</td>
                                           <td>' . $duration . '</td>
@@ -162,15 +162,15 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                                 echo "<tr><td colspan='6'>No results found</td></tr>";
                             }
                           ?>
-                        </tbody> 
-                    </table>  
+                        </tbody>
+                    </table>
                 </div>
             </section>
             <br>
             <br>
-        
+
                     <!--===========Staffs Section =============-->
-        
+
                     <section id="candidates">
                 <div class="section-header">
                     <h2>Exam Candidates</h2>
@@ -204,7 +204,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                             if($result && $result->num_rows > 0 ){
 
                                 while($row = $result->fetch_assoc()){
-                                    
+
                                     $cid = $row['C_ID'];
                                     $FName = $row['F_Name'];
                                     $LName = $row['L_Name'];
@@ -227,7 +227,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                                         <td>'.$Email.'</td>
                                         <td>'.$Age.'</td>
                                         <td>'.$Gender.'</td>
-                                        
+
                                         <td>
                                         <center>
                                         <button class = "update-btn"><a href="update_EC.php?updateid='.$cid.'">Update</a></button>
@@ -238,18 +238,18 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                                 }} else {
                                     echo "<tr><td colspan='6'>No results found</td></tr>";
                                 }
-                    
+
                         ?>
-                    </tbody> 
-                    </table>    
-                </div>  
+                    </tbody>
+                    </table>
+                </div>
                 </section>
-             
+
             </section>
-        
+
         <br>
         <br>
-               
+
 
             <!--================Staffs Section =======================-->
         <div>
@@ -278,14 +278,14 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                     <tbody>
                         <?php
                             // Query to get exam details to display
-                            $sql = "SELECT S_ID,F_Name,L_Name,D_ID,DOB,NIC,Email,Gender,Age,Role FROM staff"; 
+                            $sql = "SELECT S_ID,F_Name,L_Name,D_ID,DOB,NIC,Email,Gender,Age,Role FROM staff";
                             // Execute the query
                             $result = mysqli_query($conn, $sql);
 
                             if($result && $result->num_rows > 0 ){
 
                                 while($row = $result->fetch_assoc()){
-                                    
+
                                     $Sid = $row['S_ID'];
                                     $FName = $row['F_Name'];
                                     $LName = $row['L_Name'];
@@ -320,17 +320,58 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                                 }} else {
                                     echo "<tr><td colspan='6'>No results found</td></tr>";
                                 }
-                    
-                        ?>
-                    </tbody> 
-                    </table>    
-                </div>  
-                    
-            
-            </section>
-        </div>             
-    <script src="script/admin.js"></script>
 
+                        ?>
+                    </tbody>
+                    </table>
+                </div>
+
+
+            </section>
+        </div>
+    <script src="script/admin.js"></script>
+    <script>
+
+const modal = document.getElementById("myModal");
+    const btn = document.getElementById("openPopupBtn");
+    const span = document.getElementsByClassName("close")[0];
+
+    btn.onclick = function () {
+        modal.style.display = "block";
+    }
+
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+    function ConfirmDelete_Exam() {
+        // var E_ID = eid;
+        var result = confirm("Do you want to Delete?");
+        if (result) {
+            alert("You clicked ok !");
+            // window.location.href = ";
+    }else {
+        alert("You clicked Cancel!");
+        window.location.href = "admin.php";
+    }
+    }
+
+    function addExam() {
+        const examList = document.getElementById('exam-list').querySelector('ul');
+        const newExam = document.createElement('li');
+        newExam.innerHTML = 'New Exam <button class="btn edit-btn" onclick="editExam()">Edit</button> <button class="btn delete-btn" onclick="deleteExam()">Delete</button>';
+        examList.appendChild(newExam);
+    }
+    // Add Exam
+    function addExam() {
+        window.location.href = 'addExam.php';
+    }
+    </script>
 
     <?php
         include ("php/footer.php")

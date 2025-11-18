@@ -1,6 +1,6 @@
 <?php
     include('php/config.php');
-  
+
     if (session_status() == PHP_SESSION_NONE) {
         session_start();
     }
@@ -32,7 +32,7 @@
                     <h2>Examiner Profile</h2>
                 </div>
                 <div class="profile-section" id="profile-section">
-                    
+
                  <?php
                  $session['Role']="Examiner";
                     $sql1 = "SELECT * FROM staff WHERE Role='Examiner'";
@@ -63,7 +63,7 @@
                             $phoneNo = isset($_POST['phone']) ? $_POST['phone'] : "";
                             // Update the candidate information
                             $sql2 = "UPDATE staff SET F_Name='$Fname', L_Name='$Lname', Gender='$gender', Email='$Email', DOB='$DOB' WHERE Role='Admin'";
-                       
+
                             $result = mysqli_query($conn, $sql2);
 
                         $sql2="UPDATE  staff_phone_no SET S_phone_no='$phoneNo' WHERE S_ID='$Sid'";
@@ -93,26 +93,26 @@
 
             <label>Date of Birth: </label><br>
             <input type="date" name="dob" value="<?php echo $DOB; ?>" required><br>
-            
-                   
+
+
             <center>
-            <input type="submit" name="submit" id="submitbtn" value="Update"><br> 
+            <input type="submit" name="submit" id="submitbtn" value="Update"><br>
             </center>
             </form>
                 </div>
-            
+
             </section>
     <div>
             <!-- ================Manage Exams Section====================-->
             <section id="manage-exams">
                 <div class="section-header">
                     <h2>Manage Exams</h2>
-                    <button class="btn add-btn" id="openPopupBtn">Add New 
+                    <button class="btn add-btn" id="openPopupBtn">Add New
                         Exam</button>
 
 <!-- The Modal -->
 <div id="myModal" class="modal">
-    
+
     <div class="modal-content">
         <button class="close">close</button>
         <!-- PHP Form Start -->
@@ -153,9 +153,9 @@
         <!--================ Add Exam Form ==================== -->
         <div class="add-exam">
             <h2 id="heading"> Add Exam </h2>
-            
+
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                
+
                 <label for="exam_id">Exam ID:</label><br>
                 <input type="text" id="exam_id" name="exam_id" required placeholder="Exam ID"><br>
 
@@ -204,7 +204,7 @@
                             <th>Exam ID</th>
                             <th>Exam Name</th>
                             <th>Password</th>
-                            <th>Duration</th> 
+                            <th>Duration</th>
                             <th width= "18%">Operations</th>
                         </tr>
                         </thead>
@@ -216,7 +216,7 @@
 
                             // Execute the query
                             $result = mysqli_query($conn, $sql);
-                            
+
                             // Check if the query returns any rows
                             if ($result && mysqli_num_rows($result) > 0) {
                                 // Loop through the results
@@ -228,7 +228,7 @@
 
                                     // Output the table rows
                                     echo '<tr>
-                                          <td>' . $eid. '</td>                            
+                                          <td>' . $eid. '</td>
                                           <td>' . $examname . '</td>
                                           <td>' . $password . '</td>
                                           <td>' . $duration . '</td>
@@ -246,14 +246,73 @@
                                 echo "<tr><td colspan='6'>No results found</td></tr>";
                             }
                           ?>
-                        </tbody> 
-                    </table>  
+                        </tbody>
+                    </table>
                 </div>
             </section>
-                        
+
     <script src="script/admin.js"></script>
     <script src="script/examiner.js"></script>
+    <script>
 
+// Add New Exam
+function addExam() {
+    const examList = document.getElementById('exam-list').querySelector('ul');
+    const newExam = document.createElement('li');
+    newExam.innerHTML = 'New Exam <button class="btn edit-btn" onclick="editExam()">Edit</button> <button class="btn delete-btn" onclick="deleteExam()">Delete</button>';
+    examList.appendChild(newExam);
+}
+// Add Exam
+function addExam() {
+    window.location.href = 'addExam.php';
+}
+
+// Edit Exam
+function editExam() {
+    alert('Edit Exam feature is coming soon!');
+    window.location.href = 'updateExam.php';
+}
+
+// Delete Exam
+function deleteExam() {
+    alert('Delete Exam feature is coming soon!');
+    window.location.href = 'deleteExam.php';
+}
+
+// Function to update profile information via AJAX
+function updateProfile() {
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+
+    // Perform basic validation (optional)
+    if (name === '' || email === '') {
+        alert('Please fill out all fields.');
+        return;
+    }
+
+    // Prepare data to send to the server
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('email', email);
+
+    // Send the data using AJAX
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', 'update_profile.php', true);
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            // Success message
+            alert('Profile updated successfully!');
+            document.getElementById('name').disabled = true;
+            document.getElementById('email').disabled = true;
+            document.getElementById('saveBtn').disabled = true;
+        } else {
+            // Error handling
+            alert('Error updating profile.');
+        }
+    };
+    xhr.send(formData);
+}
+    </script>
 
     <?php
         include ("php/footer.php")

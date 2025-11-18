@@ -1,5 +1,5 @@
 <?php
-   include("php/config.php");
+   include("../config/config.php");
 
    if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -9,7 +9,7 @@
         header("Location: login.php");
         exit();
     }
-    // Database content 
+    // Database content
 
    if($_SERVER["REQUEST_METHOD"] == "POST"){
         $exam_id = $_POST["exam_id"];
@@ -30,7 +30,7 @@
             }
             elseif ($_SESSION['Role'] == 'Manager') {
                 echo '<script>window.location.href = "manager.php";</script>';
-            } 
+            }
             elseif ($_SESSION['Role'] == 'Admin') {
                 echo '<script>window.location.href = "admin.php";</script>';
             }
@@ -46,7 +46,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style/addExamAd.css">
+    <link rel="stylesheet" href="../styles/addExamAd.css">
     <title> Add Exam </title>
 </head>
 <body>

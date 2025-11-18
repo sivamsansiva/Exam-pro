@@ -1,6 +1,6 @@
 <?php
 // Assuming session is started and the user is logged in
-include("php/config.php");
+include("../config/config.php");
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Optional: Display a success message or redirect the user
         $updateSuccess = true;
-    } 
+    }
     else {
         echo "Error updating profile: " . mysqli_error($conn);
     }
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <body>
         <?php
-            include ("php/header.php");
+            include ("../includes/header.php");
         ?>
     <!-------------------- Greeting -------------------->
         <h2 id="nameGreeting">Hello, <span id="greetingName"><?php echo htmlspecialchars($user_data['F_Name'] . ' ' . $user_data['L_Name']); ?></span>!</h2>
@@ -148,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             // Execute the query
                             $result = mysqli_query($conn, $sql);
-                            
+
                             // Check if the query returns any rows
                             if ($result && mysqli_num_rows($result) > 0) {
                                 // Loop through the results
@@ -159,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                     // Output the table rows
                                     echo '<tr>
-                                          <td>' . htmlspecialchars($eid). '</td>                            
+                                          <td>' . htmlspecialchars($eid). '</td>
                                           <td>' . htmlspecialchars($examname) . '</td>
                                           <td>' . htmlspecialchars($results) . '</td>
                                       </tr>';
@@ -168,8 +168,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 echo "<tr><td colspan='3'>No results found</td></tr>";
                             }
                           ?>
-                        </tbody> 
-                    </table>  
+                        </tbody>
+                    </table>
                 </div>
             </div>
         <!------------- Show success alert if the profile was updated ------------->
@@ -180,9 +180,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </script>
 
                 <!------------ Include JavaScript file here --------------->
-        <script src="script/candidate.js"></script> 
+        <script src="script/candidate.js"></script>
         <?php
             include ("php/footer.php");
         ?>
+        <script>
+            function validateForm() {
+    let dob = document.forms["profileForm"]["DOB"].value;
+    let nic = document.forms["profileForm"]["NIC"].value;
+    let email = document.forms["profileForm"]["Email"].value;
+
+    let dobError = document.getElementById("dobError");
+    let nicError = document.getElementById("nicError");
+    let emailError = document.getElementById("emailError");
+
+    let isValid = true;
+
+    // Clear previous error messages
+    dobError.textContent = "";
+    nicError.textContent = "";
+    emailError.textContent = "";
+
+    // Validate Date of Birth
+    const dobDate = new Date(dob);
+    const today = new Date();
+    const maxDOB = new Date();
+    maxDOB.setFullYear(today.getFullYear() - 21); // Set maxDOB to today - 21 years
+
+    if (dobDate > today) {
+        dobError.textContent = "Date of Birth cannot be in the future.";
+        isValid = false;
+    }
+    else if (dobDate > maxDOB) {
+        dobError.textContent = "You must be at least 21 years old.";
+        isValid = false;
+    }
+
+    // Validate NIC (assuming it's supposed to be a specific format, e.g., 9 or 12 digits)
+    let nicPattern = /^[0-9]{9}[Vv]$|^[0-9]{12}$/;
+    if (!nicPattern.test(nic)) {
+        nicError.textContent = "NIC must be 9 digits followed by 'V' or 12 digits.";
+        isValid = false;
+    }
+
+    // Validate Email format
+    let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    if (!emailPattern.test(email)) {
+        emailError.textContent = "Invalid email format.";
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+function updateGreeting() {
+    var firstName = document.querySelector('input[name="F_Name"]').value;
+    var lastName = document.querySelector('input[name="L_Name"]').value;
+    var greetingName = document.getElementById("greetingName");
+
+    greetingName.textContent = firstName + " " + lastName;
+}
+
+// Attach event listeners to update the greeting whenever the first or last name is changed
+document.querySelector('input[name="F_Name"]').addEventListener("input", updateGreeting);
+document.querySelector('input[name="L_Name"]').addEventListener("input", updateGreeting);
+        </script>
     </body>
 </html>

@@ -1,6 +1,6 @@
 <?php
     include('php/config.php');
-   
+
     if (session_status() == PHP_SESSION_NONE) {
         session_start();
     }
@@ -35,7 +35,7 @@
                     <br>
                 </div>
                 <div class="profile-section" id="profile-section">
-                    
+
                  <?php
                  $session['Role']="Admin";
                     $sql1 = "SELECT * FROM staff WHERE Role='Admin'";
@@ -66,7 +66,7 @@
                             $phoneNo = isset($_POST['phone']) ? $_POST['phone'] : "";
                             // Update the candidate information
                             $sql2 = "UPDATE staff SET F_Name='$Fname', L_Name='$Lname', Gender='$gender', Email='$Email', DOB='$DOB' WHERE Role='Admin'";
-                       
+
                             $result = mysqli_query($conn, $sql2);
 
                         $sql2="UPDATE  staff_phone_no SET S_phone_no='$phoneNo' WHERE S_ID='$Sid'";
@@ -96,14 +96,14 @@
 
             <label>Date of Birth: </label><br>
             <input type="date" name="dob" value="<?php echo $DOB; ?>" required><br>
-            
-                   
+
+
             <center>
-            <input type="submit" name="submit" id="submitbtn" value="Update"><br> 
+            <input type="submit" name="submit" id="submitbtn" value="Update"><br>
             </center>
             </form>
                 </div>
-            
+
             </section>
     <div>
             <!-- ================Manage Exams Section====================-->
@@ -119,7 +119,7 @@
                             <th>Exam ID</th>
                             <th>Exam Name</th>
                             <th>Password</th>
-                            <th>Duration</th> 
+                            <th>Duration</th>
                             <th>Uploaded by</th>
                             <th width= "18%">Operations</th>
                         </tr>
@@ -132,7 +132,7 @@
 
                             // Execute the query
                             $result = mysqli_query($conn, $sql);
-                            
+
                             // Check if the query returns any rows
                             if ($result && mysqli_num_rows($result) > 0) {
                                 // Loop through the results
@@ -145,7 +145,7 @@
 
                                     // Output the table rows
                                     echo '<tr>
-                                          <td>' . $eid. '</td>                            
+                                          <td>' . $eid. '</td>
                                           <td>' . $examname . '</td>
                                           <td>' . $password . '</td>
                                           <td>' . $duration . '</td>
@@ -164,15 +164,15 @@
                                 echo "<tr><td colspan='6'>No results found</td></tr>";
                             }
                           ?>
-                        </tbody> 
-                    </table>  
+                        </tbody>
+                    </table>
                 </div>
             </section>
             <br>
             <br>
-        
+
                     <!--===========Staffs Section =============-->
-        
+
                     <section id="candidates">
                 <div class="section-header">
                     <h2>Exam Candidates</h2>
@@ -206,7 +206,7 @@
                             if($result && $result->num_rows > 0 ){
 
                                 while($row = $result->fetch_assoc()){
-                                    
+
                                     $cid = $row['C_ID'];
                                     $FName = $row['F_Name'];
                                     $LName = $row['L_Name'];
@@ -229,7 +229,7 @@
                                         <td>'.$Email.'</td>
                                         <td>'.$Age.'</td>
                                         <td>'.$Gender.'</td>
-                                        
+
                                         <td>
                                         <center>
                                         <button class = "update-btn"><a href="update_EC.php?updateid='.$cid.'">Update</a></button>
@@ -240,18 +240,18 @@
                                 }} else {
                                     echo "<tr><td colspan='6'>No results found</td></tr>";
                                 }
-                    
+
                         ?>
-                    </tbody> 
-                    </table>    
-                </div>  
+                    </tbody>
+                    </table>
+                </div>
                 </section>
-             
+
             </section>
-        
+
         <br>
         <br>
-               
+
 
             <!--================Staffs Section =======================-->
         <div>
@@ -280,14 +280,14 @@
                     <tbody>
                         <?php
                             // Query to get exam details to display
-                            $sql = "SELECT S_ID,F_Name,L_Name,D_ID,DOB,NIC,Email,Gender,Age,Role FROM staff"; 
+                            $sql = "SELECT S_ID,F_Name,L_Name,D_ID,DOB,NIC,Email,Gender,Age,Role FROM staff";
                             // Execute the query
                             $result = mysqli_query($conn, $sql);
 
                             if($result && $result->num_rows > 0 ){
 
                                 while($row = $result->fetch_assoc()){
-                                    
+
                                     $Sid = $row['S_ID'];
                                     $FName = $row['F_Name'];
                                     $LName = $row['L_Name'];
@@ -322,22 +322,22 @@
                                 }} else {
                                     echo "<tr><td colspan='6'>No results found</td></tr>";
                                 }
-                    
+
                         ?>
-                    </tbody> 
-                    </table>    
-                </div>  
-                    
-            
+                    </tbody>
+                    </table>
+                </div>
+
+
             </section>
         </div>
         <br>
         <br>
 
-        
+
              <!--================== Manage Users Section ================-->
-        
-            
+
+
             <section id="complaints">
                 <div class="section-header">
                     <h2>Reports</h2>
@@ -369,20 +369,20 @@
                             if($result && $result->num_rows > 0 ){
 
                                 while($row = $result->fetch_assoc()){
-                                    
+
                                     $cno = $row['C_No'];
                                     $cid = $row['C_ID'];
                                     $date = $row['C_Date'];
                                     $title = $row['C_Title'];
                                     $details = $row['C_Details'];
-                                    
+
                                     echo '<tr>
                                         <td>'.$cno.'</th>
                                         <td>'.$cid.'</td>
                                         <td>'.$date.'</td>
                                         <td>'.$title.'</td>
                                         <td>'.$details.'</td>
-                            
+
                                         <td>
                                         <center>
                                         <button class = "reply-btn"><a href="">reply</a></button>
@@ -392,21 +392,21 @@
                                 }} else {
                                     echo "<tr><td colspan='6'>No results found</td></tr>";
                                 }
-                    
+
                         ?>
-                    </tbody> 
-                    </table>    
+                    </tbody>
+                    </table>
                 </div>
                 </section>
                 </section>
-            
-     
+
+
      <br>
     <br>
 
-    
+
             <!-- Feedback & Complaints Section (Only Admin Viewable) -->
-            
+
                 <div class="section-header">
                     <h2>Feedback & Complaints</h2>
                 </div>
@@ -415,7 +415,7 @@
                      <!-- Manage Users Section -->
              <section id="feedbacks">
                             <div class="section-header">
-                                
+
                         <table class="table-style">
                             <thead>
                             <tr>
@@ -423,13 +423,13 @@
                             <th>Sender</th>
                             <th>Date</th>
                             <th>Details</th>
-                           
+
                             </tr>
                         </thead>
                     <tbody>
                         <?php
                             // Query to get exam details to display
-                            $sql = "SELECT Feedback_ID,C_ID,Date,F_Details FROM Feedback"; 
+                            $sql = "SELECT Feedback_ID,C_ID,Date,F_Details FROM Feedback";
 
                             // Execute the query
                             $result = mysqli_query($conn, $sql);
@@ -437,12 +437,12 @@
                             if($result && $result->num_rows > 0 ){
 
                                 while($row = $result->fetch_assoc()){
-                                    
+
                                     $Fid = $row['Feedback_ID'];
                                     $sender = $row['C_ID'];
                                     $Date = $row['Date'];
                                     $Details = $row['F_Details'];
-                                    
+
                                     echo '<tr>
                                         <td>'.$Fid.'</th>
                                         <td>'.$sender.'</td>
@@ -452,24 +452,56 @@
                                 }} else {
                                     echo "<tr><td colspan='6'>No results found</td></tr>";
                                 }
-                    
+
                         ?>
-                    </tbody> 
-                    </table>    
+                    </tbody>
+                    </table>
                 </div>
-            </section> 
+            </section>
         </div>
-    </div>   
+    </div>
             <br>
             <br>
 
 
-                   
+
     <script src="admin.js"></script>
 
 
     <?php
         include("php/footer.php");
     ?>
+
+    <script>
+        const modal = document.getElementById("myModal");
+const btn = document.getElementById("openPopupBtn");
+const span = document.getElementsByClassName("close")[0];
+
+btn.onclick = function () {
+    modal.style.display = "block";
+}
+
+span.onclick = function () {
+    modal.style.display = "none";
+}
+
+window.onclick = function (event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+function ConfirmDelete_Exam() {
+    // var E_ID = eid;
+    var result = confirm("Do you want to Delete?");
+    if (result) {
+        alert("You clicked ok !");
+        // window.location.href = ";
+    }
+    else {
+        alert("You clicked Cancel!");
+        window.location.href = "admin.php";
+    }
+}
+    </script>
 </body>
 </html>

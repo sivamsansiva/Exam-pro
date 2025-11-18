@@ -1,6 +1,6 @@
 <?php
 // session_start();
-include('php/config.php');
+include('../config/config.php');
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -30,7 +30,7 @@ if (isset($_POST['submit'])) {
     $Qpassword = $_POST["Q_password"];
     $Duration = $_POST["Duration"];
     // $Sid = $_POST["Sid"];
-    
+
     global $conn;
     // Update the exam information
     $sql2 = "UPDATE exam SET
@@ -61,13 +61,13 @@ if (isset($_POST['submit'])) {
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.2.0/fonts/remixicon.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style/updateStyle.css">
-    <link rel="stylesheet" href="style/examStyle.css"> 
+    <link rel="stylesheet" href="../styles/updateStyle.css">
+    <link rel="stylesheet" href="../styles/examStyle.css">
     <title>Update exam</title>
 </head>
 <body>
     <?php
-        include ('php/header.php')
+        include ('../includes/header.php')
     ?>
     <div class="Update" onsubmit="checkPassword()">
         <center> <h1>Update Exam</h1></center><br>
@@ -77,10 +77,10 @@ if (isset($_POST['submit'])) {
 
             <label for="ename">Exam Name</label>
             <input type="text" name="ename" id="ename" placeholder="Enter Exam Name" value="<?php echo $Ename; ?>" required>
-            
+
             <label for="Q_password">Quiz Password</label>
             <input type="text" name="Q_password" id="Q_password" placeholder="Enter Quiz Password" value="<?php echo $Qpassword; ?>" required>
-            
+
             <label for="Duration">Duration</label>
             <input type="text" name="Duration" id="Duration" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" placeholder="00:00:00" value="<?php echo $Duration; ?>" required>
 
@@ -91,12 +91,12 @@ if (isset($_POST['submit'])) {
             <input type="text" name="exam-id" id="exam-id" placeholder="Confirm Quiz Password"> -->
 
             <center>
-            <input type="submit" name="submit" id="submitbtn" value="Update"><br> 
+            <input type="submit" name="submit" id="submitbtn" value="Update"><br>
             </center>
         </form>
     </div>
 <?php
-    include ('php/footer.php');    
+    include ('../includes/footer.php');
 ?>
 </body>
 </html>

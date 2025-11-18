@@ -1,5 +1,5 @@
 <?php
-   include("php/config.php");
+   include("../config/config.php");
 
     if (session_status() == PHP_SESSION_NONE) {
         session_start();
@@ -10,7 +10,7 @@
         exit();
     }
 
-    // Database content 
+    // Database content
 
    if($_SERVER["REQUEST_METHOD"] == "POST"){
         $exam_id = $_POST["exam_id"];
@@ -18,7 +18,7 @@
         $qpassword = $_POST["qpassword"];
         $Duration = $_POST["duration"];
         $sid = $_POST["sid"];
-   
+
 
    global $conn;
    $message = "";
@@ -32,7 +32,7 @@
 
         if ($_SESSION['Role'] == 'Manager') {
             echo '<script>window.location.href = "manager.php";</script>';
-        } 
+        }
         elseif ($_SESSION['Role'] == 'Admin') {
             echo '<script>window.location.href = "admin.php";</script>';
         }
@@ -51,15 +51,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Exam</title>
-    <!-- <link rel="stylesheet" href="style/examStyle.css"> -->
-    <link rel="stylesheet" href="style/addExamAd.css">
+    <!-- <link rel="stylesheet" href="../styles/examStyle.css"> -->
+    <link rel="stylesheet" href="../styles/addExamAd.css">
 
 </head>
 <body>
 
     <!-- Header -->
     <?php
-        include ("php/header.php");
+        include ("../includes/header.php");
     ?>
 
     <!-- Add Exam Content -->
@@ -115,8 +115,8 @@
 
     <!-- Footer -->
     <?php
-        include ("php/footer.php");
+        include ("../includes/footer.php");
     ?>
-    
+
 </body>
 </html>
