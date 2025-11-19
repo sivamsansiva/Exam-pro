@@ -10,14 +10,14 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
     header("Location: login.php");
     exit();
 }
-    // Database content 
+    // Database content
 
    if($_SERVER["REQUEST_METHOD"] == "POST"){
          $fid = $_POST["feedback_id"];
          $cid = $_POST["cid"];
          $date = $_POST["date"];
          $Fdetails = $_POST["details"];
-   
+
 
    global $conn;
    $message = "";
@@ -29,7 +29,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
         // echo "New Exam added Sucessfully";
         echo '<script>alert("feedback added Sucessfully");</script>';
         echo '<script>window.location.href = "index.php";</script>';
-      
+
     }
     else{
         echo "Error".$sql ."<br>" . $conn->error;
@@ -45,13 +45,81 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
 
     <link rel="stylesheet" href="style/contact.css">
     <title> Add feedback </title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+body{
+    background: linear-gradient(90deg, #ffffff 0%, #EB8317 35%, #10375C 100%);
+}
+.add-exam {
+    width: 500px;
+    margin: 100px auto;
+    background-color: #c9c6c6;
+    box-shadow: 0 10px 20px rgba(12, 61, 223, 0.2);
+    padding: 20px;
+    border-radius: 5px;
+    transition: 0.3s;
+
+}
+
+.add-exam h1 {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: rgb(12, 12, 12);
+}
+
+.add-exam form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .add-exam label {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: rgb(26, 24, 24);
+  }
+
+  .add-exam input[type="text"],
+  .add-exam input[type="date"],
+  .add-exam input[type="file"],
+  .add-exam textarea,
+  .add-exam select {
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .add-exam input[type="submit"] {
+    padding: 10px 20px;
+    border: none;
+    background-color: #333;
+    color: #fff;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .add-exam input[type="submit"]:hover {
+    background-color: #666;
+  }
+
+  select {
+    background-position: right center;
+    background-size: 20px;
+    padding-right: 30px;
+  }
+    </style>
 </head>
 <body>
 <?php
     include ("php/header.php");
 ?>
     <!-- Add Exam content -->
-     
+
     <div class="add-exam">
         <h2> Add feedback </h2>
 

@@ -41,6 +41,107 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['r
       width: 75%;
       text-align: center;
     }
+    body{
+    background: linear-gradient(90deg, #ffffff 0%, #EB8317 35%, #10375C 100%);
+}
+.Result {
+    /* background-image: url('pngtree-vector-abstract-background-technology-concept-future-electric-blue-vector-png-image_23646548.jpg'); */
+    font-family: Arial, sans-serif;
+    /* background-color: #fff; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+
+.container {
+    background-color: #98c0da;
+    padding: 80px;
+    border-radius: 8px;
+    width: 500px;
+    text-align: center;
+    box-shadow: 0 5px 10px rgba(0,0,0,.2);
+    transition: 0.3s;
+
+}
+.container:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 15px rgba(0,0,0,.2);
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+input {
+    width: 80%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 3px solid #938383;
+    border-radius: 4px;
+}
+
+button {
+    padding: 10px 15px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#result {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+}
+.popup {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .popup-content {
+    background-color: white;
+    margin: 20% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 75%;
+    text-align: center;
+  }
+
+  #loader {
+    display: none;
+    font-size: 20px;
+    color: #333;
+    text-align: center;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
   </style>
 </head>
 
@@ -136,6 +237,44 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['r
       document.getElementById('popup').style.display = 'none'; // Hide the popup
       document.getElementById('resultForm').reset(); // Reset the form
     });
+
+    document.getElementById('resultForm').addEventListener('submit', function (e) {
+    e.preventDefault(); // Prevent the default form submission
+
+    // Show loader
+    document.getElementById('loader').style.display = 'block';
+
+    // Simulate a delay to mimic processing time (like querying a database)
+    setTimeout(function () {
+      // Hide the loader after delay
+      document.getElementById('loader').style.display = 'none';
+
+      if (typeof resultData !== 'undefined') {
+        // Show the result in a popup
+        if (!resultData.error) {
+          document.getElementById('popupTitle').innerText = 'Exam Result';
+          document.getElementById('popupMessage').innerHTML =
+            'Exam ID: ' + resultData.eid + '<br>' +
+            'Employee ID: ' + resultData.cid + '<br>' +
+            'Result: ' + resultData.result;
+        } else {
+          // If no result is found
+          document.getElementById('popupTitle').innerText = 'Error';
+          document.getElementById('popupMessage').innerText = resultData.error;
+        }
+
+        // Show the popup
+        document.getElementById('popup').style.display = 'block';
+      }
+
+    }, 2000); // Simulate a 2-second delay
+
+    // Close button functionality
+    document.getElementById('closePopup').addEventListener('click', function () {
+      document.getElementById('popup').style.display = 'none'; // Hide the popup
+      document.getElementById('resultForm').reset(); // Reset the form
+    });
+  });
   </script>
 <?php
     include ("../includes/footer.php");

@@ -12,6 +12,21 @@
         exit();
     }
 
+    // Get exam details if ID is provided
+    $examDetails = null;
+    $selectedExamId = isset($_GET['id']) ? $_GET['id'] : null;
+    if ($selectedExamId) {
+        $examQuery = "SELECT e.*, s.F_Name, s.L_Name, d.D_Name
+                      FROM exam e
+                      JOIN staff s ON e.S_ID = s.S_ID
+                      JOIN department d ON s.D_ID = d.D_ID
+                      WHERE e.E_ID = ?";
+        $stmt = $conn->prepare($examQuery);
+        $stmt->bind_param("s", $selectedExamId);
+        $stmt->execute();
+        $examDetails = $stmt->get_result()->fetch_assoc();
+    }
+
     // Handle form submission
     $message = "";
     $messageType = "";
@@ -62,85 +77,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam Registration</title>
     <link rel="stylesheet" href="../styles/examStyle.css">
-    <style>
-        .message {
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-            font-weight: 500;
-        }
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .message.warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <!-- Header -->
     <?php
         include ("../includes/header.php");
-
     ?>
 
-    <!-- Exam registration form -->
-    <div class="registration">
-
-        <h1>Register Exam</h1>
-
-        <?php if (!empty($message)): ?>
-            <div class="message <?php echo $messageType; ?>">
-                <?php echo htmlspecialchars($message); ?>
+    <!-- Exam registration container -->
+    <div class="registration-container">
+        <!-- Exam Details Section -->
+        <?php if ($examDetails): ?>
+        <div class="exam-details">
+            <h2><i class="fas fa-info-circle"></i> Exam Details</h2>
+            <div class="exam-info">
+                <label><i class="fas fa-file-alt"></i> Exam Name:</label>
+                <span><?php echo htmlspecialchars($examDetails['E_Name']); ?></span>
             </div>
+            <div class="exam-info">
+                <label><i class="fas fa-hashtag"></i> Exam ID:</label>
+                <span><?php echo htmlspecialchars($examDetails['E_ID']); ?></span>
+            </div>
+            <div class="exam-info">
+                <label><i class="fas fa-clock"></i> Duration:</label>
+                <span><?php echo htmlspecialchars($examDetails['Duration']); ?> minutes</span>
+            </div>
+            <div class="exam-info">
+                <label><i class="fas fa-user-tie"></i> Examiner:</label>
+                <span><?php echo htmlspecialchars($examDetails['F_Name'] . ' ' . $examDetails['L_Name']); ?></span>
+            </div>
+            <div class="exam-info">
+                <label><i class="fas fa-building"></i> Department:</label>
+                <span><?php echo htmlspecialchars($examDetails['D_Name']); ?></span>
+            </div>
+            <div class="exam-info">
+                <label><i class="fas fa-align-left"></i> Description:</label>
+                <span><?php echo isset($examDetails['Description']) ? htmlspecialchars($examDetails['Description']) : 'No description available'; ?></span>
+            </div>
+        </div>
+        <?php else: ?>
+        <div class="exam-details">
+            <h2><i class="fas fa-info-circle"></i> Exam Information</h2>
+            <p>Please select an exam from the registration form to view its details.</p>
+        </div>
         <?php endif; ?>
 
-        <form action="registerExam.php" method="post">
+        <!-- Registration Form Section -->
+        <div class="registration-form">
+            <h1><i class="fas fa-user-plus"></i> Register Exam</h1>
 
-            <label for="employee-id">Employee ID:</label>
-            <input type="text" name="employee-id" id="employee-id" placeholder="Enter Employee ID" required><br>
+            <?php if (!empty($message)): ?>
+                <div class="message <?php echo $messageType; ?>">
+                    <?php echo htmlspecialchars($message); ?>
+                </div>
+            <?php endif; ?>
 
-            <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" placeholder="Enter Email" value="<?php echo isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : ''; ?>" required><br>
+            <form action="registerExam.php<?php echo $selectedExamId ? '?id=' . htmlspecialchars($selectedExamId) : ''; ?>" method="post">
 
-            <label for="exam">Select Exam:</label>
-            <?php
-                $sql = "SELECT E_Name FROM exam";
-                $result = $conn->query($sql);
-                if($result && $result->num_rows > 0){
-            ?>
-            <select name="exam" id="exam" required>
-                <option value="" disabled selected>Select an exam</option>
+                <div class="form-field">
+                    <label for="employee-id">Employee ID:</label>
+                    <input type="text" name="employee-id" id="employee-id" placeholder="Enter Employee ID" required>
+                </div>
 
-                <?php
-                    while ($row = $result->fetch_assoc()) {
-                        $examName = $row['E_Name'];
-                        echo "<option value=\"" . htmlspecialchars($examName) . "\">" . htmlspecialchars($examName) . "</option>";
-                    }
+                <div class="form-field">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" placeholder="Enter Email" value="<?php echo isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : ''; ?>" required>
+                </div>
 
-                ?>
-            </select><br>
+                <div class="form-field">
+                    <label for="exam">Select Exam:</label>
+                    <?php
+                        $sql = "SELECT E_Name FROM exam";
+                        $result = $conn->query($sql);
+                        if($result && $result->num_rows > 0){
+                    ?>
+                    <select name="exam" id="exam" required>
+                        <option value="" disabled <?php echo !$selectedExamId ? 'selected' : ''; ?>>Select an exam</option>
 
-                <?php
-                    }
-                    else{
-                    echo "<p style='color: #721c24;'>No exam found.</p>";
-                    }
-                ?>
+                        <?php
+                            while ($row = $result->fetch_assoc()) {
+                                $examName = $row['E_Name'];
+                                $selected = ($examDetails && $examDetails['E_Name'] === $examName) ? 'selected' : '';
+                                echo "<option value=\"" . htmlspecialchars($examName) . "\" $selected>" . htmlspecialchars($examName) . "</option>";
+                            }
 
-            <input type="submit" value="Register Exam">
-        </form>
+                        ?>
+                    </select>
+                    <?php
+                        }
+                        else{
+                        echo "<p style='color: #721c24;'>No exam found.</p>";
+                        }
+                    ?>
+                </div>
 
+                <input type="submit" value="Register Exam">
+            </form>
+        </div>
     </div>
 
     <!-- Footer -->

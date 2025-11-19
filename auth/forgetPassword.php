@@ -13,9 +13,106 @@ if (session_status() == PHP_SESSION_NONE) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forgot Password</title>
     <link rel="stylesheet" href="style/password.css">
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-color: #3e3939;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.password_container {
+    background-color: #e0f7fa;
+    padding: 35px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: center;
+    opacity: 2;
+    /* transform: translateY(0); */
+    /* transition: all 0.3s ease; */
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #00bcd4 ;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #ab4eba;
+}
+
+.hidden {
+    opacity: 0;
+    height: 0;
+    visibility: hidden;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+}
+
+#resetForm.show {
+    opacity: 1;
+    height: auto;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+#message {
+    color: red;
+    margin-top: 10px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+#message.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+#errorMessage {
+    color: red;
+    margin-top: 10px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+#errorMessage.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+    </style>
 </head>
 <body>
-    <?php 
+    <?php
         include ('php/header.php')
     ?>
     <div class="password_container">
@@ -23,7 +120,7 @@ if (session_status() == PHP_SESSION_NONE) {
         <form id="forgotPasswordForm" method="POST" action="forgetpassword.php">
             <label for="nic">NIC:</label>
             <input type="text" id="nic" name="nic" required >
-            
+
             <label for="staffId">Staff ID:</label>
             <input type="text" id="staffId" name="staffId" required >
 
@@ -44,7 +141,7 @@ if($_SERVER['REQUEST_METHOD']=='POST')
     {
         $_SESSION['nic'] = $nic; // Store NIC in session
         $_SESSION['staffId'] = $staffId; // Store Staff ID in session
-        header("Location: resetPassword.php"); 
+        header("Location: resetPassword.php");
         exit();
     }
     else{
@@ -65,17 +162,17 @@ mysqli_close($conn);
         document.addEventListener("DOMContentLoaded", function () {
             const resetForm = document.getElementById('resetForm');
             const message = document.getElementById('message');
-        
+
             // Show error message if present
             if (message.textContent) {
                 message.classList.add('show');
             }
-        
+
             // Add event listener for update password button
             document.getElementById('updatePasswordButton').addEventListener('click', function() {
                 const newPassword = document.getElementById('newPassword').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
-        
+
                 // Check if passwords match and are not empty
                 if (newPassword && confirmPassword && newPassword === confirmPassword) {
                     // Simulate updating password in the database
@@ -88,9 +185,9 @@ mysqli_close($conn);
                 }
             });
         });
-        
+
      </script>
-     <?php 
+     <?php
         include ('php/footer.php')
     ?>
 </body>

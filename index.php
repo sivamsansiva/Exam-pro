@@ -202,7 +202,7 @@ if ($candidateResult->num_rows > 0) {
                                 <i class="fas fa-user-plus"></i>
                                 Register
                             </a>
-                            <a href="exams/attemptExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-outline">
+                            <a href="exams/registerExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-outline">
                                 <i class="fas fa-info-circle"></i>
                                 View Details
                             </a>
@@ -253,7 +253,7 @@ if ($candidateResult->num_rows > 0) {
                                     <i class="fas fa-user-plus"></i>
                                     Register
                                 </a>
-                                <a href="exams/attemptExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-outline">
+                                <a href="exams/registerExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-outline">
                                     <i class="fas fa-info-circle"></i>
                                     View Details
                                 </a>

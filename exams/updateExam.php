@@ -63,6 +63,77 @@ if (isset($_POST['submit'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../styles/updateStyle.css">
     <link rel="stylesheet" href="../styles/examStyle.css">
+    <style>
+        * {
+  box-sizing: border-box;
+}
+body {
+  background: linear-gradient(90deg, #ffffff 0%, #EB8317 35%, #10375C 100%);
+    font-family: Arial, Helvetica, sans-serif;
+    /* display: flex; */
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    transform: scale(1.05);
+    /* margin: 0; */
+  }
+
+  form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    width: 80vw;
+    max-width: 800px;
+
+  }
+
+  form:hover
+  {
+    transition:  0.3s;
+    transform: scale(1.02);
+    box-shadow: 0 10px 15px rgba(0,0,0,.2);
+  }
+
+  #submitbtn:hover{
+    transform: scale(1.05);
+    box-shadow: 0 10px 15px rgba(0,0,0,.2);
+  }
+
+  .Update input[type="text"],
+  .Update input[type="email"],
+  .Update input[type="tel"],
+  .Update textarea,
+  .Update input[type="date"],
+  .Update input[type="password"],
+  .Update select {
+    display: block;
+    width: 20 em;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+
+  #form {
+    display: flex;
+    flex-direction: column;
+    align-items: right;
+
+  }
+  #submitbtn{
+      width: 200px;
+      height:50px;
+      border-radius: 25px;
+      background-color: #0078D7;
+      color:white;
+      align-content:right;
+      border:none;
+      font-size: 3 rem;
+  }
+    </style>
     <title>Update exam</title>
 </head>
 <body>

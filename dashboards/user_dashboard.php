@@ -65,6 +65,152 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>User Profile</title>
         <link rel="stylesheet" href="style/candidate.css">
+        <style>
+
+body {
+    background: linear-gradient(90deg, #ffffff 0%, #EB8317 35%, #10375C 100%);
+    font-family: 'Roboto', sans-serif;
+}
+
+.user-profile {
+    width: 80%;
+    max-width: 800px;
+    margin: 40px auto;
+    background-color: #fff;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    transition: 0.3s;
+}
+.user-profile:hover {
+    transform: scale(1.05);
+    /* box-shadow: 0 10px 15px rgba(0,0,0,.2); */
+}
+h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.form-group input {
+    padding: 12px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #000;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
+}
+
+.form-group input[readonly] {
+    background-color: #f9f9f9;
+}
+
+.error {
+    color: #e74c3c;
+    font-size: 0.9em;
+    margin-top: 4px;
+}
+
+.examDetails {
+    margin-top: 50px;
+    padding-top: 20px;
+    text-align: center;
+}
+
+.examTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.examTable th, .examTable td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.examTable th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+    color: #333;
+}
+
+.examTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.examTable tr:hover {
+    background-color: #f1f1f1;
+}
+
+.submit-btn {
+    background-color: #2022bb;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background-color: #5f6072;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .user-profile {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .form-group input {
+        font-size: 0.9rem;
+    }
+
+    .submit-btn {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+
+#nameGreeting {
+    margin-top: 10px;
+    font-size: 2rem;
+    text-align: center;
+}
+        </style>
     </head>
 
     <body>
