@@ -1,21 +1,33 @@
 <?php
-// Assuming session is started and the user is logged in
+// User Dashboard - Enhanced for User Module
 include("../config/config.php");
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
-    header("Location: login.php");
+if (!isset($_SESSION['email'])) {
+    header("Location: ../auth/login.php");
     exit();
 }
 
-$_SESSION['C_ID']='C001';
-$user_id = $_SESSION['C_ID'];
-$query = "SELECT C_ID,F_Name, L_Name, D_ID, DOB, NIC, Email, Age, Gender FROM exam_candidate WHERE C_ID = '$user_id'";
+$email = $_SESSION['email'];
+$query = "SELECT C_ID,F_Name, L_Name, D_ID, DOB, NIC, Email, Age, Gender FROM exam_candidate WHERE Email = '$email'";
 $result = mysqli_query($conn, $query);
-$user_data = mysqli_fetch_assoc($result);
+
+if ($result && mysqli_num_rows($result) > 0) {
+    $user_data = mysqli_fetch_assoc($result);
+    $user_id = $user_data['C_ID'];
+    $_SESSION['C_ID'] = $user_id;
+} else {
+    // Handle case where user is not found in exam_candidate
+    // For now, redirect or show error.
+    // Since this dashboard is for candidates, if they are not a candidate, they shouldn't be here?
+    // Or maybe we should insert them?
+    // For now, let's just exit or redirect.
+    echo "User not found in candidate database.";
+    exit();
+}
 
 // Fetch candidate phone number
 $sql = "SELECT * FROM exam_candidate_phone_no WHERE C_ID= '$user_id'";
@@ -64,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>User Profile</title>
-        <link rel="stylesheet" href="style/candidate.css">
+        <link rel="stylesheet" href="../styles/style.css">
         <style>
 
 body {
@@ -221,7 +233,7 @@ h2 {
         <h2 id="nameGreeting">Hello, <span id="greetingName"><?php echo htmlspecialchars($user_data['F_Name'] . ' ' . $user_data['L_Name']); ?></span>!</h2>
 
         <div class="user-profile">
-        <form id="profileForm" action="candidate.php" method="POST" onsubmit="return validateForm();">
+        <form id="profileForm" action="user_dashboard.php" method="POST" onsubmit="return validateForm();">
             <div class="form-group">
                 <label>First Name:</label>
                 <input type="text" name="F_Name" value="<?php echo htmlspecialchars($user_data['F_Name']); ?>" required>
@@ -326,9 +338,9 @@ h2 {
         </script>
 
                 <!------------ Include JavaScript file here --------------->
-        <script src="script/candidate.js"></script>
+        <script src="../scripts/script.js"></script>
         <?php
-            include ("php/footer.php");
+            include ("../includes/footer.php");
         ?>
         <script>
             function validateForm() {

@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['role_key'] = $role;
                         $_SESSION['department'] = $department;
 
-                        header('Location: /employee/index');
+                        header('Location: ../index.php');
                         exit;
                     }
 

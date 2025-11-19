@@ -7,7 +7,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Employee'){
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 global $conn;
@@ -46,9 +46,9 @@ if (isset($_POST['submit'])) {
 
         // Redirect based on user role
         if ($_SESSION['Role'] == 'Manager') {
-            echo '<script>window.location.href = "manager.php";</script>';
+            echo '<script>window.location.href = "../dashboards/manager_dashboard.php";</script>';
         } elseif ($_SESSION['Role'] == 'Admin') {
-            echo '<script>window.location.href = "admin.php";</script>';
+            echo '<script>window.location.href = "../dashboards/admin_dashboard.php";</script>';
         }
     } else {
         die($conn->error);
@@ -61,8 +61,8 @@ if (isset($_POST['submit'])) {
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.2.0/fonts/remixicon.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../styles/updateStyle.css">
-    <link rel="stylesheet" href="../styles/examStyle.css">
+    <link rel="stylesheet" href="../styles/style.css">
+    <!-- <link rel="stylesheet" href="../styles/examStyle.css"> -->
     <style>
         * {
   box-sizing: border-box;

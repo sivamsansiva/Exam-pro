@@ -1,11 +1,11 @@
 <?php
-require('php/config.php');
+require('../config/config.php');
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
 if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Examiner' || $_SESSION['role'] == 'Employee'){
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 global $conn;
@@ -42,8 +42,8 @@ if (isset($_POST['submit'])) {
     $gender = $_POST["gender"];
     $Role = $_POST["Role"];
     $phoneNo =$_POST['S_phone_no'];
-    
-    
+
+
     // Update the candidate information
     $sql2 = "UPDATE staff SET
         F_name='$Fname',
@@ -66,9 +66,9 @@ if (isset($_POST['submit'])) {
 
         // Redirect based on user role
         if ($_SESSION['Role'] == 'Manager') {
-            echo '<script>window.location.href = "manager.php";</script>';
+            echo '<script>window.location.href = "../dashboards/manager_dashboard.php";</script>';
         } elseif ($_SESSION['Role'] == 'Admin') {
-            echo '<script>window.location.href = "admin.php";</script>';
+            echo '<script>window.location.href = "../dashboards/admin_dashboard.php";</script>';
         }
     } else {
         die($conn->error);
@@ -81,13 +81,12 @@ if (isset($_POST['submit'])) {
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.2.0/fonts/remixicon.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style/updateStyle.css">
-    <link rel="stylesheet" href="style/examStyle.css"> 
+    <link rel="stylesheet" href="../styles/style.css">
     <title>Update Staff</title>
 </head>
 <body>
     <?php
-        include ('php/header.php')
+        include ('../includes/header.php')
     ?>
     <div class="Update" onsubmit="checkPassword()">
         <center> <h1>Update Exam Staff Profile</h1></center><br>
@@ -129,7 +128,7 @@ if (isset($_POST['submit'])) {
                 <option value="Admin" <?php if ($Department_ID == "Admin") echo "selected"; ?>>Admin</option>
             </select><br>
             <center>
-            <input type="submit" name="submit" id="submitbtn" value="Update"><br> 
+            <input type="submit" name="submit" id="submitbtn" value="Update"><br>
             </center>
         </form>
     </div>
@@ -137,7 +136,7 @@ if (isset($_POST['submit'])) {
    <br>
 
    <?php
-        include ('php/footer.php');    
+        include ('../includes/footer.php');
     ?>
 </body>
 </html>

@@ -7,7 +7,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['role'] == 'Examiner' || $_SESSION['role'] == 'Admin'){
-  header("Location: login.php");
+  header("Location: ../auth/login.php");
   exit();
 }
 ?>
@@ -19,7 +19,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['r
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Exam Results</title>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.2.0/fonts/remixicon.css" rel="stylesheet">
-  <link rel="stylesheet" href="../styles/result.css">
+  <link rel="stylesheet" href="../styles/style.css">
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
   <style>
     .popup {

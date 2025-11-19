@@ -1,5 +1,5 @@
 <?php
-include('php/config.php');
+include('../config/config.php');
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -12,7 +12,7 @@ if (session_status() == PHP_SESSION_NONE) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forgot Password</title>
-    <link rel="stylesheet" href="style/password.css">
+    <link rel="stylesheet" href="../styles/style.css">
     <style>
         body {
     font-family: Arial, sans-serif;
@@ -113,7 +113,7 @@ button:hover {
 </head>
 <body>
     <?php
-        include ('php/header.php')
+        include ('../includes/header.php')
     ?>
     <div class="password_container">
         <h2>Forgot Password</h2>
@@ -127,7 +127,7 @@ button:hover {
             <button type="submit">Reset Password</button>
         </form>
         <?php
-require ('php/config.php');
+require ('../config/config.php');
 
 if($_SERVER['REQUEST_METHOD']=='POST')
 {
@@ -152,43 +152,9 @@ if($_SERVER['REQUEST_METHOD']=='POST')
 }
 mysqli_close($conn);
 ?>
-
-    <!-- <script src="script.js"></script> -->
-</body>
-</html>
-
-    <!-- <script src="script.js"></script> -->
-     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const resetForm = document.getElementById('resetForm');
-            const message = document.getElementById('message');
-
-            // Show error message if present
-            if (message.textContent) {
-                message.classList.add('show');
-            }
-
-            // Add event listener for update password button
-            document.getElementById('updatePasswordButton').addEventListener('click', function() {
-                const newPassword = document.getElementById('newPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-
-                // Check if passwords match and are not empty
-                if (newPassword && confirmPassword && newPassword === confirmPassword) {
-                    // Simulate updating password in the database
-                    alert('Password has been updated successfully!');
-                    message.textContent = ''; // Clear any previous messages
-                } else {
-                    // Show error message if passwords do not match or are empty
-                    message.textContent = 'Passwords do not match or fields are empty!';
-                    message.classList.add('show'); // Trigger message animation
-                }
-            });
-        });
-
-     </script>
-     <?php
-        include ('php/footer.php')
+    </div>
+    <?php
+        include ('../includes/footer.php')
     ?>
 </body>
 </html>

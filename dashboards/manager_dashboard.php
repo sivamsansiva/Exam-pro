@@ -1,13 +1,13 @@
 <?php
 // session_start();
-include('php/config.php');
+include('../config/config.php');
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
 if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 ?>
@@ -18,12 +18,12 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Profile Page</title>
-    <link rel="stylesheet" href="style/admin.css">
-    <link rel="stylesheet" href="style/add_exam_AD.css">
+    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="stylesheet" href="../styles/theme.css">
 </head>
 <body>
     <?php
-        include ("php/header.php");
+        include ("../includes/header.php");
     ?>
     <div class="admin-container">
         <main class="main-content">
@@ -35,7 +35,6 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                 <div class="profile-section" id="profile-section">
 
                  <?php
-                 $session['Role']="Manager";
                     $sql1 = "SELECT * FROM staff WHERE Role='Manager'";
                         $result = mysqli_query($conn, $sql1);
                         $row = $result->fetch_assoc();
@@ -151,8 +150,9 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                                           <td>
                                             <center>
                                               <button class="update-btn">
-                                                <a href="updateExam.php?updateid='.$eid.'">Update</a>
-                                              <button class = "delete-btn" onclick="ConfirmDelete_Exam()"><a href="deleteExam.php?deleteid='.$eid.'">delete</a></button>
+                                                <a href="../exams/updateExam.php?updateid='.$eid.'">Update</a>
+                                              </button>
+                                              <button class = "delete-btn" onclick="ConfirmDelete_Exam()"><a href="../exams/deleteExam.php?deleteid='.$eid.'">delete</a></button>
 
                                             </center>
                                           </td>
@@ -230,8 +230,8 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
 
                                         <td>
                                         <center>
-                                        <button class = "update-btn"><a href="update_EC.php?updateid='.$cid.'">Update</a></button>
-                                        <button class = "delete-btn" onclick="ConfirmDelete()"><a href="delete_EC.php?deleteid='.$cid.'">Delete</a></button>
+                                        <button class = "update-btn"><a href="../users/updateCandidate.php?updateid='.$cid.'">Update</a></button>
+                                        <button class = "delete-btn" onclick="ConfirmDelete()"><a href="../users/deleteCandidate.php?deleteid='.$cid.'">Delete</a></button>
                                         </center>
                                         </td>
                                         </tr>';
@@ -312,8 +312,8 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
                                         <td>'.$Role.'</td>
                                         <td>
                                         <center>
-                                        <button class = "update-btn"><a href="update_staff.php?updateid='.$Sid.'">Update</a></button>
-                                        <button class = "delete-btn" onclick="ConfirmDelete()"><a href="delete_STF.php?deleteid='.$Sid.'">Delete</a></button>
+                                        <button class = "update-btn"><a href="../users/updateStaff.php?updateid='.$Sid.'">Update</a></button>
+                                        <button class = "delete-btn" onclick="ConfirmDelete()"><a href="../users/deleteStaff.php?deleteid='.$Sid.'">Delete</a></button>
                                         </center>
                                         </td>
                                         </tr>';
@@ -329,7 +329,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Manager'){
 
             </section>
         </div>
-    <script src="script/admin.js"></script>
+    <script src="../scripts/script.js"></script>
     <script>
 
 const modal = document.getElementById("myModal");
@@ -357,7 +357,7 @@ const modal = document.getElementById("myModal");
             // window.location.href = ";
     }else {
         alert("You clicked Cancel!");
-        window.location.href = "admin.php";
+        window.location.href = "manager_dashboard.php";
     }
     }
 
@@ -369,12 +369,12 @@ const modal = document.getElementById("myModal");
     }
     // Add Exam
     function addExam() {
-        window.location.href = 'addExam.php';
+        window.location.href = '../exams/addExam.php';
     }
     </script>
 
     <?php
-        include ("php/footer.php")
+        include ("../includes/footer.php")
     ?>
 </body>
 </html>

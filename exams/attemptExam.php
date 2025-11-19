@@ -6,7 +6,7 @@
     }
 
     if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
-        header("Location: login.php");
+        header("Location: ../auth/login.php");
         exit();
     }
 ?>
@@ -16,7 +16,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attempt Exam</title>
-    <link rel="stylesheet" href="../styles/examStyle.css">
+    <link rel="stylesheet" href="../styles/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ===================================
@@ -55,7 +55,7 @@ body {
       rgba(15, 23, 42, 0.6),
       rgba(37, 99, 235, 0.35)
     ),
-    url("../assets/images/exam_bg.jpg") center / cover no-repeat;
+    url("../assets/images/auth_bg.jpg") center / cover no-repeat;
   position: relative;
   overflow-x: hidden;
   display: flex;
@@ -509,6 +509,6 @@ select {
     <?php
         include ("../includes/footer.php");
     ?>
-    <script src="../scripts/mainScript.js"></script>
+    <script src="../scripts/script.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 <?php
 // session_start();
-include('php/config.php');
+// include('../config/config.php');
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -33,7 +33,7 @@ if (session_status() == PHP_SESSION_NONE) {
             margin-bottom:30px;
             text-decoration: underline;
         }
-        
+
         p {
             color: #333;
             font-size: 18px;
@@ -87,22 +87,22 @@ if (session_status() == PHP_SESSION_NONE) {
 
         .AboutLinks {
             display: flex;
-            justify-content: center; 
-            align-items: center; 
+            justify-content: center;
+            align-items: center;
             height: 100px;
             gap: 25px;
         }
 
         .AboutLinks>li a:hover {
             display: flex;
-            list-style: none; 
+            list-style: none;
             color: rgb(10, 10, 10);
             text-decoration:line-through;
         }
 
         .AboutLinks a {
             color: rgb(9, 10, 9);
-            text-decoration:none; 
+            text-decoration:none;
             font-size: 1rem;
         }
 
@@ -125,13 +125,13 @@ if (session_status() == PHP_SESSION_NONE) {
             }
         }
     </style>
-    
+
 </head>
 <body>
 
     <!-- Header -->
     <?php
-        include ("php/header.php");
+        include ("../includes/header.php");
     ?>
 
     <!-- Privacy & Policy Page Content -->
@@ -140,20 +140,20 @@ if (session_status() == PHP_SESSION_NONE) {
 
     <div class="About">
         <ul class="AboutLinks">
-          <li><a href="about.php">About us</a></li>
+          <li><a href="aboutUs.php">About us</a></li>
           <li><a href="privacy.php">Privacy & Policy</a></li>
           <li><a href="terms.php">Terms & Conditions</a></li>
         </ul>
 
         <h1> Privacy & Policy </h1>
-            
+
             <div class="main">
                 <p id="submain">
-                    This Privacy Policy explains how Xam pro we collects, uses, and protects the personal information of employees using our Online Examination System. 
+                    This Privacy Policy explains how Xam pro we collects, uses, and protects the personal information of employees using our Online Examination System.
                 </p>
                 <p id="submain">
 
-                    <h3> Information We Collect</h3> 
+                    <h3> Information We Collect</h3>
 
                     We collect personal data when you register for and use our Online Examination System. This includes: <br><br>
 
@@ -227,10 +227,10 @@ if (session_status() == PHP_SESSION_NONE) {
                     <h3> Contact Us</h3>
 
                     If you have any questions or concerns about this Privacy Policy or how we handle your personal information, please contact us at: <br><br>
-                    
+
                     Email: xampro@gmail.com  <br>
                     Address: Jaffna, Sri Lanka.
-                                
+
                 </p>
             </div>
 
@@ -240,8 +240,8 @@ if (session_status() == PHP_SESSION_NONE) {
 
     <!-- Footer -->
     <?php
-        include ("php/footer.php");
+        include ("../includes/footer.php");
     ?>
-    
+
 </body>
 </html>

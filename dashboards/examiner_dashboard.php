@@ -1,12 +1,12 @@
 <?php
-    include('php/config.php');
+    include('../config/config.php');
 
     if (session_status() == PHP_SESSION_NONE) {
         session_start();
     }
 
     if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Examiner'){
-        header("Location: login.php");
+        header("Location: ../auth/login.php");
         exit();
     }
 ?>
@@ -17,12 +17,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Examiner Profile Page</title>
-    <link rel="stylesheet" href="style/admin.css">
-    <link rel="stylesheet" href="style/add_exam_AD.css">
+    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="stylesheet" href="../styles/theme.css">
 </head>
 <body>
     <?php
-        include ("php/header.php");
+        include ("../includes/header.php");
     ?>
     <div class="admin-container">
         <main class="main-content">
@@ -34,7 +34,6 @@
                 <div class="profile-section" id="profile-section">
 
                  <?php
-                 $session['Role']="Examiner";
                     $sql1 = "SELECT * FROM staff WHERE Role='Examiner'";
                         $result = mysqli_query($conn, $sql1);
                         $row = $result->fetch_assoc();
@@ -117,7 +116,7 @@
         <button class="close">close</button>
         <!-- PHP Form Start -->
         <?php
-        include("config.php");
+        include("../config/config.php");
 
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $exam_id = $_POST["exam_id"];
@@ -136,11 +135,11 @@
             if ($stmt->execute()) {
                 echo '<script>alert("New Exam added Successfully");</script>';
                 if ($_SESSION['Role'] == 'Examiner') {
-                    echo '<script>window.location.href = "examiner.php";</script>';
+                    echo '<script>window.location.href = "examiner_dashboard.php";</script>';
                 } elseif ($_SESSION['Role'] == 'Manager') {
-                    echo '<script>window.location.href = "manager.php";</script>';
+                    echo '<script>window.location.href = "manager_dashboard.php";</script>';
                 } elseif ($_SESSION['Role'] == 'Admin') {
-                    echo '<script>window.location.href = "admin.php";</script>';
+                    echo '<script>window.location.href = "admin_dashboard.php";</script>';
                 }
             } else {
                 echo "Error: " . $stmt->error;
@@ -235,8 +234,9 @@
                                           <td>
                                             <center>
                                               <button class="update-btn">
-                                                <a href="updateExam.php?updateid='.$eid.'">Update</a>
-                                              <button class = "delete-btn" onclick="ConfirmDelete_Exam()"><a href="deleteExam.php?deleteid='.$eid.'">delete</a></button>
+                                                <a href="../exams/updateExam.php?updateid='.$eid.'">Update</a>
+                                              </button>
+                                              <button class = "delete-btn" onclick="ConfirmDelete_Exam()"><a href="../exams/deleteExam.php?deleteid='.$eid.'">delete</a></button>
 
                                             </center>
                                           </td>
@@ -251,8 +251,7 @@
                 </div>
             </section>
 
-    <script src="script/admin.js"></script>
-    <script src="script/examiner.js"></script>
+    <script src="../scripts/script.js"></script>
     <script>
 
 // Add New Exam
@@ -264,19 +263,19 @@ function addExam() {
 }
 // Add Exam
 function addExam() {
-    window.location.href = 'addExam.php';
+    window.location.href = '../exams/addExam.php';
 }
 
 // Edit Exam
 function editExam() {
     alert('Edit Exam feature is coming soon!');
-    window.location.href = 'updateExam.php';
+    window.location.href = '../exams/updateExam.php';
 }
 
 // Delete Exam
 function deleteExam() {
     alert('Delete Exam feature is coming soon!');
-    window.location.href = 'deleteExam.php';
+    window.location.href = '../exams/deleteExam.php';
 }
 
 // Function to update profile information via AJAX
@@ -297,7 +296,7 @@ function updateProfile() {
 
     // Send the data using AJAX
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', 'update_profile.php', true);
+    xhr.open('POST', '../users/profile.php', true);
     xhr.onload = function () {
         if (xhr.status === 200) {
             // Success message
@@ -315,7 +314,7 @@ function updateProfile() {
     </script>
 
     <?php
-        include ("php/footer.php")
+        include ("../includes/footer.php")
     ?>
 </body>
 </html>

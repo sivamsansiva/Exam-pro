@@ -1,12 +1,12 @@
 <?php
-    include('php/config.php');
+    include('../config/config.php');
 
     if (session_status() == PHP_SESSION_NONE) {
         session_start();
     }
 
     if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Admin'){
-        header("Location: login.php");
+        header("Location: ../auth/login.php");
         exit();
     }
 ?>
@@ -18,12 +18,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Profile Page</title>
-    <link rel="stylesheet" href="style/admin.css">
-    <link rel="stylesheet" href="style/add_exam_AD.css">
+    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="stylesheet" href="../styles/theme.css">
 </head>
 <body>
     <?php
-     include('php/header.php');
+     include('../includes/header.php');
     ?>
     <div class="admin-container">
         <main class="main-content">
@@ -37,7 +37,6 @@
                 <div class="profile-section" id="profile-section">
 
                  <?php
-                 $session['Role']="Admin";
                     $sql1 = "SELECT * FROM staff WHERE Role='Admin'";
                         $result = mysqli_query($conn, $sql1);
                         $row = $result->fetch_assoc();
@@ -153,8 +152,9 @@
                                           <td>
                                             <center>
                                               <button class="update-btn">
-                                                <a href="update_EX.php?updateid='.$eid.'">Update</a>
-                                              <button class = "delete-btn" onclick="ConfirmDelete_Exam()"><a href="delete_EX.php?deleteid='.$eid.'">delete</a></button>
+                                                <a href="../exams/updateExam.php?updateid='.$eid.'">Update</a>
+                                              </button>
+                                              <button class = "delete-btn" onclick="ConfirmDelete_Exam()"><a href="../exams/deleteExam.php?deleteid='.$eid.'">delete</a></button>
 
                                             </center>
                                           </td>
@@ -232,8 +232,8 @@
 
                                         <td>
                                         <center>
-                                        <button class = "update-btn"><a href="update_EC.php?updateid='.$cid.'">Update</a></button>
-                                        <button class = "delete-btn" onclick="ConfirmDelete()"><a href="delete_EC.php?deleteid='.$cid.'">Delete</a></button>
+                                        <button class = "update-btn"><a href="../users/updateCandidate.php?updateid='.$cid.'">Update</a></button>
+                                        <button class = "delete-btn" onclick="ConfirmDelete()"><a href="../users/deleteCandidate.php?deleteid='.$cid.'">Delete</a></button>
                                         </center>
                                         </td>
                                         </tr>';
@@ -314,8 +314,8 @@
                                         <td>'.$Role.'</td>
                                         <td>
                                         <center>
-                                        <button class = "update-btn"><a href="update_staff.php?updateid='.$Sid.'">Update</a></button>
-                                        <button class = "delete-btn" onclick="ConfirmDelete()"><a href="delete_STF.php?deleteid='.$Sid.'">Delete</a></button>
+                                        <button class = "update-btn"><a href="../users/updateStaff.php?updateid='.$Sid.'">Update</a></button>
+                                        <button class = "delete-btn" onclick="ConfirmDelete()"><a href="../users/deleteStaff.php?deleteid='.$Sid.'">Delete</a></button>
                                         </center>
                                         </td>
                                         </tr>';
@@ -465,11 +465,11 @@
 
 
 
-    <script src="admin.js"></script>
+    <script src="../scripts/script.js"></script>
 
 
     <?php
-        include("php/footer.php");
+        include("../includes/footer.php");
     ?>
 
     <script>
@@ -499,7 +499,7 @@ function ConfirmDelete_Exam() {
     }
     else {
         alert("You clicked Cancel!");
-        window.location.href = "admin.php";
+        window.location.href = "admin_dashboard.php";
     }
 }
     </script>

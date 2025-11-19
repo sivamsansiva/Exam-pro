@@ -1,5 +1,5 @@
 <?php
-   include("php/config.php");
+   include("../config/config.php");
 
    if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -7,7 +7,7 @@
 
 if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
     // echo '<script>alert("you do not have to do that here!!")</script>';
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
     // Database content
@@ -28,7 +28,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
     if($conn->query($sql) === TRUE){
         // echo "New Exam added Sucessfully";
         echo '<script>alert("feedback added Sucessfully");</script>';
-        echo '<script>window.location.href = "index.php";</script>';
+        echo '<script>window.location.href = "../index.php";</script>';
 
     }
     else{
@@ -43,7 +43,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="style/contact.css">
+    <link rel="stylesheet" href="../styles/style.css">
     <title> Add feedback </title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -116,14 +116,14 @@ body{
 </head>
 <body>
 <?php
-    include ("php/header.php");
+    include ("../includes/header.php");
 ?>
     <!-- Add Exam content -->
 
     <div class="add-exam">
         <h2> Add feedback </h2>
 
-        <form action="<?php htmlspecialchars($_SERVER["PHP_SELF"])?>" method="post">
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
 
             <label for="feedback_id">Feedback ID:</label><br>
             <input type="text" id="feedback_id" name="feedback_id" required placeholder="Feedback ID"><br>
@@ -141,7 +141,7 @@ body{
         </form>
     </div>
 <?php
-    include ("php/footer.php");
+    include ("../includes/footer.php");
 ?>
 </body>
 </html>

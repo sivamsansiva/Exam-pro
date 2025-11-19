@@ -1,12 +1,12 @@
 <!-- wait until about page finish -->
 <?php
-    require ('php/config.php');
+    require ('../config/config.php');
     if (session_status() == PHP_SESSION_NONE) {
         session_start();
       }
 
       if (!isset($_SESSION['email'])){
-        header("Location: login.php");
+        header("Location: ../auth/login.php");
         exit();
       }
 ?>
@@ -16,7 +16,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us</title>
-    <link rel="stylesheet" href="style/about.css">
+    <link rel="stylesheet" href="../styles/style.css">
     <style>
         body {
     background: linear-gradient(90deg,#C63C51 0%,#8C3061 50%, #4F1787 100%);
@@ -139,13 +139,13 @@ h5{
 
     <!-- Header -->
     <?php
-        include ("php/header.php");
+        include ("../includes/header.php");
     ?>
     <!-- About Us Page Content -->
     <div class="Maincontent">
         <div class="About">
         <ul class="AboutLinks">
-            <li><a href="about.php">About us</a></li>
+            <li><a href="aboutUs.php">About us</a></li>
             <li><a href="privacy.php">Privacy & Policy</a></li>
             <li><a href="terms.php">Terms & Conditions</a></li>
         </ul>
@@ -154,7 +154,7 @@ h5{
         <div class="content">
 
             <div class="image">
-            <img src="img/about.png" alt="image" width="750px">
+            <img src="../assets/images/about.png" alt="image" width="750px">
             </div> <br>
 
             <div class="aboutcontant">
@@ -210,7 +210,7 @@ h5{
 
     <!-- Footer -->
     <?php
-        include ("php/footer.php");
+        include ("../includes/footer.php");
     ?>
 </body>
 </html>

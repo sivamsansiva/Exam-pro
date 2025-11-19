@@ -11,21 +11,7 @@ if (isset($_SESSION['email'])) {
 
     if (isset($_SESSION['role'])) {
         $userRole = $_SESSION['role'];
-        switch ($userRole) {
-            case 'admin':
-                $profileLink = "users/admin.php";
-                break;
-            case 'examiner':
-                $profileLink = "users/examiner.php";
-                break;
-            case 'manager':
-                $profileLink = "users/manager.php";
-                break;
-            case 'employee':
-            default:
-                $profileLink = "users/candidate.php";
-                break;
-        }
+        $profileLink = "../users/profile.php";
     }
 }
 
@@ -345,7 +331,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <header class="main-header">
         <div class="header-container">
             <!-- Logo -->
-            <a href="index.php" class="header-logo">
+            <a href="/Exam-pro/index.php" class="header-logo">
                 <i class="fas fa-graduation-cap"></i>
                 <span>ExamPro</span>
             </a>
@@ -354,7 +340,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <nav class="header-nav" id="mainNav">
                 <ul class="nav-menu">
                     <li class="nav-item">
-                        <a href="index.php" class="nav-link <?php echo ($currentPage == 'index.php') ? 'active' : ''; ?>">
+                        <a href="/Exam-pro/index.php" class="nav-link <?php echo ($currentPage == 'index.php') ? 'active' : ''; ?>">
                             <i class="fas fa-home"></i>
                             <span>Home</span>
                         </a>
@@ -365,13 +351,13 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                             <i class="fas fa-chevron-down"></i>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="exams/registerExam.php" class="dropdown-link">
+                            <li><a href="/Exam-pro/exams/registerExam.php" class="dropdown-link">
                                 <i class="fas fa-user-plus"></i>Register Exam
                             </a></li>
-                            <li><a href="exams/attemptExam.php" class="dropdown-link">
+                            <li><a href="/Exam-pro/exams/attemptExam.php" class="dropdown-link">
                                 <i class="fas fa-pen-to-square"></i>Attempt Exam
                             </a></li>
-                            <li><a href="exams/result.php" class="dropdown-link">
+                            <li><a href="/Exam-pro/exams/result.php" class="dropdown-link">
                                 <i class="fas fa-chart-line"></i>View Results
                             </a></li>
                         </ul>
@@ -382,16 +368,16 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                             <i class="fas fa-chevron-down"></i>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="contactUs.php" class="dropdown-link">
+                            <li><a href="/Exam-pro/pages/contactUs.php" class="dropdown-link">
                                 <i class="fas fa-envelope"></i>Contact Us
                             </a></li>
-                            <li><a href="complain.php" class="dropdown-link">
+                            <li><a href="/Exam-pro/pages/complain.php" class="dropdown-link">
                                 <i class="fas fa-exclamation-circle"></i>Submit Complaint
                             </a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a href="aboutUs.php" class="nav-link <?php echo ($currentPage == 'aboutUs.php') ? 'active' : ''; ?>">
+                        <a href="/Exam-pro/pages/aboutUs.php" class="nav-link <?php echo ($currentPage == 'aboutUs.php') ? 'active' : ''; ?>">
                             <i class="fas fa-info-circle"></i>
                             <span>About Us</span>
                         </a>
@@ -415,14 +401,14 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="user-dropdown">
-                        <a href="<?php echo $profileLink; ?>" class="user-dropdown-link">
+                        <a href="/Exam-pro/users/profile.php" class="user-dropdown-link">
                             <i class="fas fa-user"></i>My Profile
                         </a>
-                        <a href="exams/result.php" class="user-dropdown-link">
+                        <a href="/Exam-pro/exams/result.php" class="user-dropdown-link">
                             <i class="fas fa-chart-bar"></i>My Results
                         </a>
                         <div class="user-dropdown-divider"></div>
-                        <a href="auth/logout.php" class="user-dropdown-link" style="color: var(--error);">
+                        <a href="/Exam-pro/auth/logout.php" class="user-dropdown-link" style="color: var(--error);">
                             <i class="fas fa-sign-out-alt"></i>Logout
                         </a>
                     </div>

@@ -1,12 +1,12 @@
 <?php
-// include('php/config.php');
+// include('../config/config.php');
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
 if (!isset($_SESSION['email'])){
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 ?>
@@ -16,11 +16,11 @@ if (!isset($_SESSION['email'])){
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms & Conditions</title>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"> 
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 
     <style>
         /* terms.css */
-        
+
         body {
             background: linear-gradient(90deg,#C63C51 0%,#8C3061 50%, #4F1787 100%);
 }
@@ -38,22 +38,22 @@ if (!isset($_SESSION['email'])){
 
         .AboutLinks {
             display: flex;
-            justify-content: center; 
-            align-items: center; 
+            justify-content: center;
+            align-items: center;
             height: 100px;
             gap: 25px;
         }
 
         .AboutLinks>li a:hover {
             display: flex;
-            list-style: none; 
+            list-style: none;
             color: rgb(10, 10, 10);
             text-decoration:line-through;
         }
 
         .AboutLinks a {
             color: rgb(9, 10, 9);
-            text-decoration:none; 
+            text-decoration:none;
             font-size: 1rem;
         }
 
@@ -64,7 +64,7 @@ if (!isset($_SESSION['email'])){
             color: #fff;
             padding-bottom: 10px;
             text-decoration: underline;
-           
+
         }
 
         .content-box{
@@ -115,7 +115,7 @@ if (!isset($_SESSION['email'])){
 
     <!-- Header -->
     <?php
-        include ("php/header.php");
+        include ("../includes/header.php");
     ?>
 
     <!-- Terms & Conditions Page Content -->
@@ -123,7 +123,7 @@ if (!isset($_SESSION['email'])){
     <section class="Main-Content">
         <div class="About">
             <ul class="AboutLinks">
-              <li><a href="about.php">About us</a></li>
+              <li><a href="aboutUs.php">About us</a></li>
               <li><a href="privacy.php">Privacy & Policy</a></li>
               <li><a href="terms.php">Terms & Conditions</a></li>
             </ul>
@@ -153,7 +153,7 @@ if (!isset($_SESSION['email'])){
 
     <!-- Footer -->
     <?php
-        include ("php/footer.php");
+        include ("../includes/footer.php");
     ?>
 </body>
 </html>

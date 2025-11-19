@@ -110,10 +110,21 @@ if ($candidateResult->num_rows > 0) {
                                 <i class="fas fa-pen-to-square"></i>
                                 Take Exam
                             </a>
+                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Employee'): ?>
+                                <a href="dashboards/user_dashboard.php" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    My Dashboard
+                                </a>
+                            <?php elseif (isset($_SESSION['role'])): ?>
+                                <a href="dashboards/<?php echo strtolower($_SESSION['role']); ?>_dashboard.php" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    My Dashboard
+                                </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="hero-image">
-                        <img src="img/exampro.webp" alt="ExamPro Platform" onerror="this.style.display='none'">
+                        <img src="assets/images/exampro.webp" alt="ExamPro Platform" onerror="this.style.display='none'">
                     </div>
                 </div>
             </div>
@@ -378,22 +389,22 @@ if ($candidateResult->num_rows > 0) {
         <section class="quick-links-section">
             <div class="container">
                 <div class="quick-links-grid">
-                    <a href="aboutUs.php" class="quick-link-card">
+                    <a href="pages/aboutUs.php" class="quick-link-card">
                         <i class="fas fa-info-circle"></i>
                         <h3>About Us</h3>
                         <p>Learn more about ExamPro and our mission</p>
                     </a>
-                    <a href="contactUs.php" class="quick-link-card">
+                    <a href="pages/contactUs.php" class="quick-link-card">
                         <i class="fas fa-envelope"></i>
                         <h3>Contact Us</h3>
                         <p>Get in touch with our support team</p>
                     </a>
-                    <a href="terms.php" class="quick-link-card">
+                    <a href="pages/terms.php" class="quick-link-card">
                         <i class="fas fa-file-contract"></i>
                         <h3>Terms & Conditions</h3>
                         <p>Read our terms of service</p>
                     </a>
-                    <a href="privacy.php" class="quick-link-card">
+                    <a href="pages/privacy.php" class="quick-link-card">
                         <i class="fas fa-shield-alt"></i>
                         <h3>Privacy Policy</h3>
                         <p>Understand how we protect your data</p>

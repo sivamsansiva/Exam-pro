@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Employee'){
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 //Delete User Operation
@@ -19,13 +19,13 @@ if(isset($_GET['deleteid'])){
 
     if($result){
         if ($_SESSION['Role'] == 'Manager') {
-            echo '<script>window.location.href = "manager.php";</script>';
+            echo '<script>window.location.href = "../dashboards/manager_dashboard.php";</script>';
         }
         elseif ($_SESSION['Role'] == 'Admin') {
-            echo '<script>window.location.href = "admin.php";</script>';
+            echo '<script>window.location.href = "../dashboards/admin_dashboard.php";</script>';
         }
         elseif  ($_SESSION['Role'] == 'Examiner') {
-            echo '<script>window.location.href = "examiner.php";</script>';
+            echo '<script>window.location.href = "../dashboards/examiner_dashboard.php";</script>';
         }
     }else{
         die($conn->error);

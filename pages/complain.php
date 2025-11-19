@@ -1,13 +1,13 @@
 <?php
 //Linking the configuration file
-require ('php/config.php');
+require ('../config/config.php');
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
 if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
-    header("Location: login.php");
+    header("Location: ../auth/login.php");
     exit();
 }
 
@@ -18,7 +18,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Complaint Form</title>
-    <link rel="stylesheet" href="style/complain.css"> <!-- Link to the CSS file -->
+    <link rel="stylesheet" href="../styles/style.css"> <!-- Link to the CSS file -->
     <style>
 
 body{
@@ -101,11 +101,11 @@ body{
 </head>
 <body>
     <?php
-        include ('php/header.php')
+        include ('../includes/header.php')
     ?>
     <div class="complain">
     <h2>Submit Your Complaint</h2>
-    <form id="complaintForm" action="<?php $_SERVER["PHP_SELF"]?>" method="post">
+    <form id="complaintForm" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
     <label for="emp_id">Complain No:</label>
     <input type="text" id="emp_id" name="C_no" placeholder="Enter your Employee ID" required>
 
@@ -132,7 +132,8 @@ body{
 
     </div>
 
-    <script src="script/complain.js">
+    <script src="../scripts/script.js"></script>
+    <script>
         // JavaScript form validation
 document.getElementById("complaintForm").onsubmit = function(event)
 {
@@ -176,7 +177,7 @@ function validateEmail(email) {
 
     </script> <!-- Link to the JavaScript file -->
     <?php
-        include ('php/footer.php')
+        include ('../includes/footer.php')
     ?>
 </body>
 </html>

@@ -153,8 +153,7 @@ if ($userRole === 'Employee' && isset($userId)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($userRole); ?> Profile - ExamPro</title>
     <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="../styles/candidate.css">
-    <link rel="stylesheet" href="../styles/admin.css">
+    <link rel="stylesheet" href="../styles/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .profile-container {
@@ -340,7 +339,7 @@ if ($userRole === 'Employee' && isset($userId)) {
         <?php endif; ?>
 
         <?php if ($userRole === 'Admin'): ?>
-            <a href="admin_dashboard.php" class="btn-dashboard">
+            <a href="../dashboards/admin_dashboard.php" class="btn-dashboard">
                 <i class="fas fa-tachometer-alt"></i> Go to Admin Dashboard
             </a>
         <?php endif; ?>

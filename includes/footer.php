@@ -229,19 +229,19 @@
                 <div class="footer-section">
                     <h3>Quick Links</h3>
                     <ul class="footer-links">
-                        <li><a href="index.php">
+                        <li><a href="/Exam-pro/index.php">
                             <i class="fas fa-home"></i>Home
                         </a></li>
-                        <li><a href="exams/registerExam.php">
+                        <li><a href="/Exam-pro/exams/registerExam.php">
                             <i class="fas fa-user-plus"></i>Register for Exam
                         </a></li>
-                        <li><a href="exams/attemptExam.php">
+                        <li><a href="/Exam-pro/exams/attemptExam.php">
                             <i class="fas fa-pen-to-square"></i>Attempt Exam
                         </a></li>
-                        <li><a href="exams/result.php">
+                        <li><a href="/Exam-pro/exams/result.php">
                             <i class="fas fa-chart-line"></i>View Results
                         </a></li>
-                        <li><a href="aboutUs.php">
+                        <li><a href="/Exam-pro/pages/aboutUs.php">
                             <i class="fas fa-info-circle"></i>About Us
                         </a></li>
                     </ul>
@@ -251,16 +251,16 @@
                 <div class="footer-section">
                     <h3>Support</h3>
                     <ul class="footer-links">
-                        <li><a href="contactUs.php">
+                        <li><a href="/Exam-pro/pages/contactUs.php">
                             <i class="fas fa-envelope"></i>Contact Us
                         </a></li>
-                        <li><a href="complain.php">
+                        <li><a href="/Exam-pro/pages/complain.php">
                             <i class="fas fa-exclamation-circle"></i>Submit Complaint
                         </a></li>
-                        <li><a href="privacy.php">
+                        <li><a href="/Exam-pro/pages/privacy.php">
                             <i class="fas fa-shield-alt"></i>Privacy Policy
                         </a></li>
-                        <li><a href="terms.php">
+                        <li><a href="/Exam-pro/pages/terms.php">
                             <i class="fas fa-file-contract"></i>Terms & Conditions
                         </a></li>
                     </ul>
@@ -298,9 +298,9 @@
                         <span><?php echo date('Y'); ?> ExamPro. All rights reserved.</span>
                     </div>
                     <ul class="footer-legal-links">
-                        <li><a href="privacy.php">Privacy Policy</a></li>
-                        <li><a href="terms.php">Terms of Service</a></li>
-                        <li><a href="contactUs.php">Contact</a></li>
+                        <li><a href="/Exam-pro/pages/privacy.php">Privacy Policy</a></li>
+                        <li><a href="/Exam-pro/pages/terms.php">Terms of Service</a></li>
+                        <li><a href="/Exam-pro/pages/contactUs.php">Contact</a></li>
                     </ul>
                 </div>
             </div>
