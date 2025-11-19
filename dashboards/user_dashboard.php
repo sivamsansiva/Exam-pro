@@ -20,11 +20,6 @@ if ($result && mysqli_num_rows($result) > 0) {
     $user_id = $user_data['C_ID'];
     $_SESSION['C_ID'] = $user_id;
 } else {
-    // Handle case where user is not found in exam_candidate
-    // For now, redirect or show error.
-    // Since this dashboard is for candidates, if they are not a candidate, they shouldn't be here?
-    // Or maybe we should insert them?
-    // For now, let's just exit or redirect.
     echo "User not found in candidate database.";
     exit();
 }
@@ -35,15 +30,16 @@ $result1 = mysqli_query($conn, $sql);
 $user_data1 = mysqli_fetch_assoc($result1);
 
 $updateSuccess = false;
+$updateError = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $Fname = $_POST["F_Name"];
-    $Lname = $_POST["L_Name"];
-    $Department_ID = $_POST["D_ID"];
-    $Email = $_POST["Email"];
-    $DOB = $_POST["DOB"];
-    $NIC = $_POST["NIC"];
-    $Phone_no = $_POST["phone"];
+    $Fname = mysqli_real_escape_string($conn, $_POST["F_Name"]);
+    $Lname = mysqli_real_escape_string($conn, $_POST["L_Name"]);
+    $Department_ID = mysqli_real_escape_string($conn, $_POST["D_ID"]);
+    $Email = mysqli_real_escape_string($conn, $_POST["Email"]);
+    $DOB = mysqli_real_escape_string($conn, $_POST["DOB"]);
+    $NIC = mysqli_real_escape_string($conn, $_POST["NIC"]);
+    $Phone_no = mysqli_real_escape_string($conn, $_POST["phone"]);
 
     // Update candidate information
     $updateQuery = "UPDATE exam_candidate SET
@@ -51,23 +47,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         L_Name='$Lname',
         Email='$Email',
         DOB='$DOB',
-        NIC='$NIC'
+        NIC='$NIC',
+        D_ID='$Department_ID'
         WHERE C_ID='$user_id'";
 
     // Execute update query
     if (mysqli_query($conn, $updateQuery)) {
-        // Update phone number separately (assuming you have a separate table for phone numbers)
-        $updatePhoneQuery = "UPDATE exam_candidate_phone_no SET Phone_no='$Phone_no' WHERE C_ID='$user_id'";
-        mysqli_query($conn, $updatePhoneQuery);
+        // Update phone number separately
+        $checkPhone = "SELECT * FROM exam_candidate_phone_no WHERE C_ID='$user_id'";
+        $checkResult = mysqli_query($conn, $checkPhone);
+        if (mysqli_num_rows($checkResult) > 0) {
+            $updatePhoneQuery = "UPDATE exam_candidate_phone_no SET Phone_no='$Phone_no' WHERE C_ID='$user_id'";
+            mysqli_query($conn, $updatePhoneQuery);
+        } else {
+            $insertPhoneQuery = "INSERT INTO exam_candidate_phone_no (C_ID, Phone_no) VALUES ('$user_id', '$Phone_no')";
+            mysqli_query($conn, $insertPhoneQuery);
+        }
 
-        // Optional: Display a success message or redirect the user
         $updateSuccess = true;
+        // Refresh data
+        $result = mysqli_query($conn, $query);
+        $user_data = mysqli_fetch_assoc($result);
+        $result1 = mysqli_query($conn, $sql);
+        $user_data1 = mysqli_fetch_assoc($result1);
     }
     else {
-        echo "Error updating profile: " . mysqli_error($conn);
+        $updateError = "Error updating profile: " . mysqli_error($conn);
     }
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -77,331 +84,198 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>User Profile</title>
         <link rel="stylesheet" href="../styles/style.css">
-        <style>
-
-body {
-    background: linear-gradient(90deg, #ffffff 0%, #EB8317 35%, #10375C 100%);
-    font-family: 'Roboto', sans-serif;
-}
-
-.user-profile {
-    width: 80%;
-    max-width: 800px;
-    margin: 40px auto;
-    background-color: #fff;
-    padding: 30px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    transition: 0.3s;
-}
-.user-profile:hover {
-    transform: scale(1.05);
-    /* box-shadow: 0 10px 15px rgba(0,0,0,.2); */
-}
-h2 {
-    font-size: 1.5rem;
-    color: #333;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #ddd;
-    padding-bottom: 10px;
-    text-align: center;
-}
-
-.form-group {
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.form-group label {
-    font-weight: bold;
-    font-size: 1.1rem;
-    color: #555;
-    margin-bottom: 8px;
-}
-
-.form-group input {
-    padding: 12px;
-    width: 100%;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border 0.3s ease;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #000;
-    box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
-}
-
-.form-group input[readonly] {
-    background-color: #f9f9f9;
-}
-
-.error {
-    color: #e74c3c;
-    font-size: 0.9em;
-    margin-top: 4px;
-}
-
-.examDetails {
-    margin-top: 50px;
-    padding-top: 20px;
-    text-align: center;
-}
-
-.examTable {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.examTable th, .examTable td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-.examTable th {
-    background-color: #f5f5f5;
-    font-weight: bold;
-    color: #333;
-}
-
-.examTable tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-.examTable tr:hover {
-    background-color: #f1f1f1;
-}
-
-.submit-btn {
-    background-color: #2022bb;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-    margin-top: 10px;
-}
-
-.submit-btn:hover {
-    background-color: #5f6072;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .user-profile {
-        width: 95%;
-        padding: 20px;
-    }
-
-    .form-group input {
-        font-size: 0.9rem;
-    }
-
-    .submit-btn {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-    }
-}
-
-.profile-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-
-#nameGreeting {
-    margin-top: 10px;
-    font-size: 2rem;
-    text-align: center;
-}
-        </style>
+    <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     </head>
 
-    <body>
-        <?php
-            include ("../includes/header.php");
-        ?>
-    <!-------------------- Greeting -------------------->
-        <h2 id="nameGreeting">Hello, <span id="greetingName"><?php echo htmlspecialchars($user_data['F_Name'] . ' ' . $user_data['L_Name']); ?></span>!</h2>
+<body>
+    <?php include ("../includes/header.php"); ?>
 
-        <div class="user-profile">
-        <form id="profileForm" action="user_dashboard.php" method="POST" onsubmit="return validateForm();">
-            <div class="form-group">
-                <label>First Name:</label>
-                <input type="text" name="F_Name" value="<?php echo htmlspecialchars($user_data['F_Name']); ?>" required>
+    <div class="container mt-xl">
+        <div class="mb-xl text-center">
+            <h1>Hello, <span id="greetingName"><?php echo htmlspecialchars($user_data['F_Name'] . ' ' . $user_data['L_Name']); ?></span>!</h1>
+            <p>Welcome to your dashboard.</p>
+        </div>
+
+        <?php if ($updateSuccess): ?>
+            <div class="alert alert-success mb-lg">
+                <i class="fas fa-check-circle"></i> Profile updated successfully!
+            </div>
+        <?php endif; ?>
+
+        <?php if ($updateError): ?>
+            <div class="alert alert-error mb-lg">
+                <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($updateError); ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="grid-2">
+            <!-- Profile Section -->
+            <div class="card mb-xl">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-user"></i> My Profile</h2>
+                </div>
+                <form id="profileForm" action="user_dashboard.php" method="POST" onsubmit="return validateForm();">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="F_Name" class="form-control" value="<?php echo htmlspecialchars($user_data['F_Name']); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="L_Name" class="form-control" value="<?php echo htmlspecialchars($user_data['L_Name']); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Candidate ID</label>
+                        <input type="text" name="C_ID" class="form-control" value="<?php echo htmlspecialchars($user_data['C_ID']); ?>" readonly style="background-color: #f0f0f0;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Department ID</label>
+                        <input type="text" name="D_ID" class="form-control" value="<?php echo htmlspecialchars($user_data['D_ID']); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="DOB" class="form-control" value="<?php echo htmlspecialchars($user_data['DOB']); ?>" required>
+                        <span class="text-error" id="dobError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">NIC</label>
+                        <input type="text" name="NIC" class="form-control" value="<?php echo htmlspecialchars($user_data['NIC']); ?>" required>
+                        <span class="text-error" id="nicError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="Email" class="form-control" value="<?php echo htmlspecialchars($user_data['Email']); ?>" required>
+                        <span class="text-error" id="emailError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <input type="text" name="Gender" class="form-control" value="<?php echo htmlspecialchars($user_data['Gender']); ?>" readonly style="background-color: #f0f0f0;">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" pattern="[0-9]{10}" placeholder="07XXXXXXXX" value="<?php echo htmlspecialchars($user_data1['Phone_no'] ?? ''); ?>" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
+                </form>
             </div>
 
-            <div class="form-group">
-                <label>Last Name:</label>
-                <input type="text" name="L_Name" value="<?php echo htmlspecialchars($user_data['L_Name']); ?>" required>
-            </div>
-
-            <div class="form-group">
-                <label>Employee ID:</label>
-                <input type="text" name="C_ID" value="<?php echo htmlspecialchars($user_data['C_ID']); ?>" readonly>
-            </div>
-
-            <div class="form-group">
-                <label>Department:</label>
-                <input type="text" name="D_ID" value="<?php echo htmlspecialchars($user_data['D_ID']); ?>" required>
-            </div>
-
-            <div class="form-group">
-                <label>Date of Birth:</label>
-                <input type="date" name="DOB" value="<?php echo htmlspecialchars($user_data['DOB']); ?>" required>
-                <span class="error" id="dobError"></span>
-            </div>
-
-            <div class="form-group">
-                <label>NIC:</label>
-                <input type="text" name="NIC" value="<?php echo htmlspecialchars($user_data['NIC']); ?>" required>
-                <span class="error" id="nicError"></span>
-            </div>
-
-            <div class="form-group">
-                <label>Email:</label>
-                <input type="email" name="Email" value="<?php echo htmlspecialchars($user_data['Email']); ?>" required>
-                <span class="error" id="emailError"></span>
-            </div>
-
-            <div class="form-group">
-                <label>Gender:</label>
-                <input type="text" name="Gender" value="<?php echo htmlspecialchars($user_data['Gender']); ?>" readonly>
-            </div>
-
-            <div class="form-group">
-            <label>Mobile Number: </label>
-            <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" placeholder="07XXXXXXXX" value="<?php echo htmlspecialchars($user_data1['Phone_no']); ?>" required><br>
-            </div>
-
-            <button type="submit" class="submit-btn">Update Profile</button>
-
-                <div id="examDetails">
-                    <h2> Exam Details </h2>
-                    <table class="examTable">
+            <!-- Exam Results Section -->
+            <div class="card mb-xl">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-graduation-cap"></i> Exam Results</h2>
+                </div>
+                <div class="table-container">
+                    <table class="table">
                         <thead>
-                        <tr>
-                            <th>Exam ID</th>
-                            <th>Exam Name</th>
-                            <th>Results</th>
-                        </tr>
+                            <tr>
+                                <th>Exam ID</th>
+                                <th>Exam Name</th>
+                                <th>Result</th>
+                            </tr>
                         </thead>
                         <tbody>
-
-                          <?php
-                            // Query to get exam details to display
+                            <?php
                             $sql = "SELECT exam.E_ID, exam.E_Name, attends.Result
                                     FROM exam
                                     JOIN attends ON exam.E_ID = attends.E_ID
-                                    WHERE attends.C_ID = '" . $user_data['C_ID'] . "'
-                                    ";
+                                    WHERE attends.C_ID = '" . $user_data['C_ID'] . "'";
 
-                            // Execute the query
                             $result = mysqli_query($conn, $sql);
 
-                            // Check if the query returns any rows
                             if ($result && mysqli_num_rows($result) > 0) {
-                                // Loop through the results
-                                while ($row = mysqli_fetch_assoc($result)) { // Using mysqli_fetch_assoc() for procedural style
-                                    $eid = $row['E_ID'];
-                                    $examname=$row['E_Name'];
-                                    $results = $row['Result'];
-
-                                    // Output the table rows
+                                while ($row = mysqli_fetch_assoc($result)) {
                                     echo '<tr>
-                                          <td>' . htmlspecialchars($eid). '</td>
-                                          <td>' . htmlspecialchars($examname) . '</td>
-                                          <td>' . htmlspecialchars($results) . '</td>
+                                          <td>' . htmlspecialchars($row['E_ID']) . '</td>
+                                          <td>' . htmlspecialchars($row['E_Name']) . '</td>
+                                          <td><span class="badge badge-primary">' . htmlspecialchars($row['Result']) . '</span></td>
                                       </tr>';
                                 }
                             } else {
-                                echo "<tr><td colspan='3'>No results found</td></tr>";
+                                echo "<tr><td colspan='3' class='text-center'>No exam results found</td></tr>";
                             }
-                          ?>
+                            ?>
                         </tbody>
                     </table>
                 </div>
+                <div class="mt-lg">
+                    <a href="../exams/registerExam.php" class="btn btn-outline" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-plus-circle"></i> Register for New Exam
+                    </a>
+                </div>
             </div>
-        <!------------- Show success alert if the profile was updated ------------->
-        <script>
-            <?php if ($updateSuccess) : ?>
-            alert("Profile updated successfully!");
-            <?php endif; ?>
-        </script>
+        </div>
+    </div>
 
-                <!------------ Include JavaScript file here --------------->
-        <script src="../scripts/script.js"></script>
-        <?php
-            include ("../includes/footer.php");
-        ?>
-        <script>
-            function validateForm() {
-    let dob = document.forms["profileForm"]["DOB"].value;
-    let nic = document.forms["profileForm"]["NIC"].value;
-    let email = document.forms["profileForm"]["Email"].value;
+    <?php include ("../includes/footer.php"); ?>
 
-    let dobError = document.getElementById("dobError");
-    let nicError = document.getElementById("nicError");
-    let emailError = document.getElementById("emailError");
+    <script>
+        function validateForm() {
+            let dob = document.forms["profileForm"]["DOB"].value;
+            let nic = document.forms["profileForm"]["NIC"].value;
+            let email = document.forms["profileForm"]["Email"].value;
 
-    let isValid = true;
+            let dobError = document.getElementById("dobError");
+            let nicError = document.getElementById("nicError");
+            let emailError = document.getElementById("emailError");
 
-    // Clear previous error messages
-    dobError.textContent = "";
-    nicError.textContent = "";
-    emailError.textContent = "";
+            let isValid = true;
 
-    // Validate Date of Birth
-    const dobDate = new Date(dob);
-    const today = new Date();
-    const maxDOB = new Date();
-    maxDOB.setFullYear(today.getFullYear() - 21); // Set maxDOB to today - 21 years
+            // Clear previous error messages
+            dobError.textContent = "";
+            nicError.textContent = "";
+            emailError.textContent = "";
 
-    if (dobDate > today) {
-        dobError.textContent = "Date of Birth cannot be in the future.";
-        isValid = false;
-    }
-    else if (dobDate > maxDOB) {
-        dobError.textContent = "You must be at least 21 years old.";
-        isValid = false;
-    }
+            // Validate Date of Birth
+            const dobDate = new Date(dob);
+            const today = new Date();
+            const maxDOB = new Date();
+            maxDOB.setFullYear(today.getFullYear() - 18); // Changed to 18 for general usage
 
-    // Validate NIC (assuming it's supposed to be a specific format, e.g., 9 or 12 digits)
-    let nicPattern = /^[0-9]{9}[Vv]$|^[0-9]{12}$/;
-    if (!nicPattern.test(nic)) {
-        nicError.textContent = "NIC must be 9 digits followed by 'V' or 12 digits.";
-        isValid = false;
-    }
+            if (dobDate > today) {
+                dobError.textContent = "Date of Birth cannot be in the future.";
+                isValid = false;
+            }
+            // Removed strict 21 age limit, kept future check.
 
-    // Validate Email format
-    let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-    if (!emailPattern.test(email)) {
-        emailError.textContent = "Invalid email format.";
-        isValid = false;
-    }
+            // Validate NIC
+            let nicPattern = /^[0-9]{9}[Vv]$|^[0-9]{12}$/;
+            if (!nicPattern.test(nic)) {
+                nicError.textContent = "NIC must be 9 digits followed by 'V' or 12 digits.";
+                isValid = false;
+            }
 
-    return isValid;
-}
+            // Validate Email format
+            let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            if (!emailPattern.test(email)) {
+                emailError.textContent = "Invalid email format.";
+                isValid = false;
+            }
 
-function updateGreeting() {
-    var firstName = document.querySelector('input[name="F_Name"]').value;
-    var lastName = document.querySelector('input[name="L_Name"]').value;
-    var greetingName = document.getElementById("greetingName");
+            return isValid;
+        }
 
-    greetingName.textContent = firstName + " " + lastName;
-}
+        function updateGreeting() {
+            var firstName = document.querySelector('input[name="F_Name"]').value;
+            var lastName = document.querySelector('input[name="L_Name"]').value;
+            var greetingName = document.getElementById("greetingName");
 
-// Attach event listeners to update the greeting whenever the first or last name is changed
-document.querySelector('input[name="F_Name"]').addEventListener("input", updateGreeting);
-document.querySelector('input[name="L_Name"]').addEventListener("input", updateGreeting);
-        </script>
-    </body>
+            greetingName.textContent = firstName + " " + lastName;
+        }
+
+        // Attach event listeners
+        document.querySelector('input[name="F_Name"]').addEventListener("input", updateGreeting);
+        document.querySelector('input[name="L_Name"]').addEventListener("input", updateGreeting);
+    </script>
+</body>
 </html>

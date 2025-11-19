@@ -79,65 +79,92 @@ if (isset($_POST['submit'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.2.0/fonts/remixicon.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Staff - ExamPro</title>
+    <link rel="stylesheet" href="../styles/theme.css">
     <link rel="stylesheet" href="../styles/style.css">
-    <title>Update Staff</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <?php
-        include ('../includes/header.php')
-    ?>
-    <div class="Update" onsubmit="checkPassword()">
-        <center> <h1>Update Exam Staff Profile</h1></center><br>
-        <form method="post" id="form" action="<?php htmlspecialchars($_SERVER["PHP_SELF"])?>">
-            <label>First Name: </label>
-            <input type="text" name="fname" placeholder="Enter First Name" value="<?php echo $Fname; ?>" required><br>
+    <?php include('../includes/header.php'); ?>
 
-            <label>Last Name: </label>
-            <input type="text" name="lname" placeholder="Enter Last Name" value="<?php echo $Lname; ?>" required><br>
+    <div class="container mt-xl">
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+            <h2 class="text-primary mb-lg text-center">
+                <i class="fas fa-user-edit"></i> Update Exam Staff Profile
+            </h2>
 
-            <label>Gender: </label>
-            <label>
-                <input type="radio" id="Male" name="gender" value="Male" <?php if ($gender == "Male") echo "checked"; ?>> Male
-                <input type="radio" id="Female" name="gender" value="Female" <?php if ($gender == "Female") echo "checked"; ?>> Female<br>
-            </label><br>
+            <form method="post" id="form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) . '?updateid=' . $Sid; ?>">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="fname" class="form-control" placeholder="Enter First Name" value="<?php echo htmlspecialchars($Fname); ?>" required>
+                    </div>
 
-            <label>Mobile Number: </label>
-            <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" placeholder="07XXXXXXXX" value="<?php echo $phoneNo; ?>" required><br>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="lname" class="form-control" placeholder="Enter Last Name" value="<?php echo htmlspecialchars($Lname); ?>" required>
+                    </div>
 
-            <label>Email: </label>
-            <input type="email" id="email" name="email" placeholder="Enter Email" value="<?php echo $Email; ?>" required><br>
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" name="gender" value="Male" <?php if ($gender == "Male") echo "checked"; ?>> Male
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" name="gender" value="Female" <?php if ($gender == "Female") echo "checked"; ?>> Female
+                            </label>
+                        </div>
+                    </div>
 
-            <label>Date of Birth: </label>
-            <input type="date" name="dob" value="<?php echo $DOB; ?>" required><br>
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="tel" name="S_phone_no" class="form-control" pattern="[0-9]{10}" placeholder="07XXXXXXXX" value="<?php echo htmlspecialchars($phoneNo); ?>" required>
+                    </div>
 
-            <label>Department ID: </label>
-            <select name="D_ID" required>
-                <option value="D001" <?php if ($Department_ID == "D001") echo "selected"; ?>>D001</option>
-                <option value="D002" <?php if ($Department_ID == "D002") echo "selected"; ?>>D002</option>
-                <option value="D003" <?php if ($Department_ID == "D003") echo "selected"; ?>>D003</option>
-                <option value="D004" <?php if ($Department_ID == "D004") echo "selected"; ?>>D004</option>
-                <option value="D005" <?php if ($Department_ID == "D005") echo "selected"; ?>>D005</option>
-            </select><br>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="Enter Email" value="<?php echo htmlspecialchars($Email); ?>" required>
+                    </div>
 
-            <label>Staff Role: </label>
-            <select name="Role" required>
-                <option value="Examiner" <?php if ($Role == "Examiner") echo "selected"; ?>>Examiner</option>
-                <option value="Manager" <?php if ($Department_ID == "Manager") echo "selected"; ?>>Manager</option>
-                <option value="Admin" <?php if ($Department_ID == "Admin") echo "selected"; ?>>Admin</option>
-            </select><br>
-            <center>
-            <input type="submit" name="submit" id="submitbtn" value="Update"><br>
-            </center>
-        </form>
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="dob" class="form-control" value="<?php echo htmlspecialchars($DOB); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Department ID</label>
+                        <select name="D_ID" class="form-control" required>
+                            <option value="D001" <?php if ($Department_ID == "D001") echo "selected"; ?>>D001</option>
+                            <option value="D002" <?php if ($Department_ID == "D002") echo "selected"; ?>>D002</option>
+                            <option value="D003" <?php if ($Department_ID == "D003") echo "selected"; ?>>D003</option>
+                            <option value="D004" <?php if ($Department_ID == "D004") echo "selected"; ?>>D004</option>
+                            <option value="D005" <?php if ($Department_ID == "D005") echo "selected"; ?>>D005</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Staff Role</label>
+                        <select name="Role" class="form-control" required>
+                            <option value="Examiner" <?php if ($Role == "Examiner") echo "selected"; ?>>Examiner</option>
+                            <option value="Manager" <?php if ($Role == "Manager") echo "selected"; ?>>Manager</option>
+                            <option value="Admin" <?php if ($Role == "Admin") echo "selected"; ?>>Admin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-lg text-center">
+                    <button type="submit" name="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Staff
+                    </button>
+                    <a href="javascript:history.back()" class="btn btn-secondary" style="margin-left: 1rem;">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
-   <br>
-   <br>
 
-   <?php
-        include ('../includes/footer.php');
-    ?>
+    <?php include('../includes/footer.php'); ?>
 </body>
 </html>
 

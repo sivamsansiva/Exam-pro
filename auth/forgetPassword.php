@@ -1,10 +1,48 @@
 <?php
-include('../config/config.php');
+require_once '../config/config.php';
 
-if (session_status() == PHP_SESSION_NONE) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+$errors = [];
+$nic = '';
+$staffId = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nic = trim($_POST['nic'] ?? '');
+    $staffId = trim($_POST['staffId'] ?? '');
+
+    if ($nic === '') {
+        $errors[] = 'Please enter your NIC.';
+    }
+
+    if ($staffId === '') {
+        $errors[] = 'Please enter your Staff ID.';
+    }
+
+    if (!$errors) {
+        // Use prepared statement to prevent SQL injection
+        $stmt = $conn->prepare("SELECT * FROM staff WHERE NIC = ? AND S_ID = ?");
+        if ($stmt) {
+            $stmt->bind_param("ss", $nic, $staffId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result && $result->num_rows > 0) {
+                $_SESSION['nic'] = $nic;
+                $_SESSION['staffId'] = $staffId;
+                header("Location: resetPassword.php");
+                exit();
+            } else {
+                $errors[] = "NIC or Staff ID is incorrect.";
+            }
+            $stmt->close();
+        } else {
+            $errors[] = "Database error. Please try again later.";
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,149 +50,46 @@ if (session_status() == PHP_SESSION_NONE) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forgot Password</title>
-    <link rel="stylesheet" href="../styles/style.css">
-    <style>
-        body {
-    font-family: Arial, sans-serif;
-    background-color: #3e3939;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.password_container {
-    background-color: #e0f7fa;
-    padding: 35px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    text-align: center;
-    opacity: 2;
-    /* transform: translateY(0); */
-    /* transition: all 0.3s ease; */
-}
-
-h2 {
-    margin-bottom: 20px;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-input[type="text"],
-input[type="password"] {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-}
-
-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #00bcd4 ;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #ab4eba;
-}
-
-.hidden {
-    opacity: 0;
-    height: 0;
-    visibility: hidden;
-    transform: translateY(-20px);
-    transition: all 0.3s ease;
-}
-
-#resetForm.show {
-    opacity: 1;
-    height: auto;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-#message {
-    color: red;
-    margin-top: 10px;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-}
-
-#message.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-#errorMessage {
-    color: red;
-    margin-top: 10px;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-}
-
-#errorMessage.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-    </style>
+    <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="../styles/auth.css">
 </head>
 <body>
-    <?php
-        include ('../includes/header.php')
-    ?>
-    <div class="password_container">
-        <h2>Forgot Password</h2>
-        <form id="forgotPasswordForm" method="POST" action="forgetpassword.php">
-            <label for="nic">NIC:</label>
-            <input type="text" id="nic" name="nic" required >
+<div class="auth-wrapper" role="main">
+    <div class="auth-card">
+        <header class="auth-header">
+            <h1 class="auth-title">Forgot Password</h1>
+            <p class="auth-subtitle">Enter your NIC and Staff ID to reset your password.</p>
+        </header>
 
-            <label for="staffId">Staff ID:</label>
-            <input type="text" id="staffId" name="staffId" required >
+        <?php if ($errors): ?>
+            <div class="alert alert-error" role="alert">
+                <ul class="alert-list">
+                    <?php foreach ($errors as $error): ?>
+                        <li><?php echo htmlspecialchars($error); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
 
-            <button type="submit">Reset Password</button>
+        <form method="post" class="auth-form">
+            <div class="form-field">
+                <label for="nic">NIC</label>
+                <input type="text" id="nic" name="nic" value="<?php echo htmlspecialchars($nic); ?>" required autofocus>
+            </div>
+
+            <div class="form-field">
+                <label for="staffId">Staff ID</label>
+                <input type="text" id="staffId" name="staffId" value="<?php echo htmlspecialchars($staffId); ?>" required>
+            </div>
+
+            <button type="submit" class="auth-button">Verify Identity</button>
+
+            <div class="auth-links">
+                <span>Remember your password? <a href="login.php">Sign in</a></span>
+            </div>
         </form>
-        <?php
-require ('../config/config.php');
-
-if($_SERVER['REQUEST_METHOD']=='POST')
-{
-    $nic=$_POST['nic'];
-    $staffId = $_POST['staffId'];
-
-    $query="SELECT * From staff WHERE NIC = '$nic' AND S_ID= '$staffId'";
-    $result = mysqli_query($conn,$query);
-
-    if($result && mysqli_num_rows($result)>0)
-    {
-        $_SESSION['nic'] = $nic; // Store NIC in session
-        $_SESSION['staffId'] = $staffId; // Store Staff ID in session
-        header("Location: resetPassword.php");
-        exit();
-    }
-    else{
-        $_SESSION['error_message'] = "NIC or Staff ID is not correct"; // Store error message in session
-        header("Location: forgetPassword.php"); // Redirect back to the same page
-        exit();
-    }
-}
-mysqli_close($conn);
-?>
     </div>
-    <?php
-        include ('../includes/footer.php')
-    ?>
+</div>
+<script src="../scripts/auth.js" defer></script>
 </body>
 </html>

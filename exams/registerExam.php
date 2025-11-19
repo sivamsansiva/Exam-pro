@@ -76,7 +76,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam Registration</title>
-    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="stylesheet" href="../styles/theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -87,94 +87,112 @@
     ?>
 
     <!-- Exam registration container -->
-    <div class="registration-container">
-        <!-- Exam Details Section -->
-        <?php if ($examDetails): ?>
-        <div class="exam-details">
-            <h2><i class="fas fa-info-circle"></i> Exam Details</h2>
-            <div class="exam-info">
-                <label><i class="fas fa-file-alt"></i> Exam Name:</label>
-                <span><?php echo htmlspecialchars($examDetails['E_Name']); ?></span>
-            </div>
-            <div class="exam-info">
-                <label><i class="fas fa-hashtag"></i> Exam ID:</label>
-                <span><?php echo htmlspecialchars($examDetails['E_ID']); ?></span>
-            </div>
-            <div class="exam-info">
-                <label><i class="fas fa-clock"></i> Duration:</label>
-                <span><?php echo htmlspecialchars($examDetails['Duration']); ?> minutes</span>
-            </div>
-            <div class="exam-info">
-                <label><i class="fas fa-user-tie"></i> Examiner:</label>
-                <span><?php echo htmlspecialchars($examDetails['F_Name'] . ' ' . $examDetails['L_Name']); ?></span>
-            </div>
-            <div class="exam-info">
-                <label><i class="fas fa-building"></i> Department:</label>
-                <span><?php echo htmlspecialchars($examDetails['D_Name']); ?></span>
-            </div>
-            <div class="exam-info">
-                <label><i class="fas fa-align-left"></i> Description:</label>
-                <span><?php echo isset($examDetails['Description']) ? htmlspecialchars($examDetails['Description']) : 'No description available'; ?></span>
-            </div>
-        </div>
-        <?php else: ?>
-        <div class="exam-details">
-            <h2><i class="fas fa-info-circle"></i> Exam Information</h2>
-            <p>Please select an exam from the registration form to view its details.</p>
-        </div>
-        <?php endif; ?>
-
-        <!-- Registration Form Section -->
-        <div class="registration-form">
-            <h1><i class="fas fa-user-plus"></i> Register Exam</h1>
-
-            <?php if (!empty($message)): ?>
-                <div class="message <?php echo $messageType; ?>">
-                    <?php echo htmlspecialchars($message); ?>
+    <div class="container mt-xl mb-xl">
+        <div class="grid-2">
+            <!-- Exam Details Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-info-circle"></i> Exam Details</h2>
+                    <p class="card-subtitle">Information about the selected exam</p>
                 </div>
-            <?php endif; ?>
-
-            <form action="registerExam.php<?php echo $selectedExamId ? '?id=' . htmlspecialchars($selectedExamId) : ''; ?>" method="post">
-
-                <div class="form-field">
-                    <label for="employee-id">Employee ID:</label>
-                    <input type="text" name="employee-id" id="employee-id" placeholder="Enter Employee ID" required>
+                <div class="card-body">
+                    <?php if ($examDetails): ?>
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-file-alt"></i> Exam Name</label>
+                            <div class="form-control" readonly><?php echo htmlspecialchars($examDetails['E_Name']); ?></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-hashtag"></i> Exam ID</label>
+                            <div class="form-control" readonly><?php echo htmlspecialchars($examDetails['E_ID']); ?></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-clock"></i> Duration</label>
+                            <div class="form-control" readonly><?php echo htmlspecialchars($examDetails['Duration']); ?> minutes</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-user-tie"></i> Examiner</label>
+                            <div class="form-control" readonly><?php echo htmlspecialchars($examDetails['F_Name'] . ' ' . $examDetails['L_Name']); ?></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-building"></i> Department</label>
+                            <div class="form-control" readonly><?php echo htmlspecialchars($examDetails['D_Name']); ?></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-align-left"></i> Description</label>
+                            <div class="form-control" readonly style="height: auto; min-height: 100px;"><?php echo isset($examDetails['Description']) ? htmlspecialchars($examDetails['Description']) : 'No description available'; ?></div>
+                        </div>
+                    <?php else: ?>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Please select an exam from the registration form to view its details.
+                        </div>
+                    <?php endif; ?>
                 </div>
+            </div>
 
-                <div class="form-field">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" placeholder="Enter Email" value="<?php echo isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : ''; ?>" required>
+            <!-- Registration Form Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title"><i class="fas fa-user-plus"></i> Register Exam</h1>
+                    <p class="card-subtitle">Fill in the form to register for an exam</p>
                 </div>
+                <div class="card-body">
+                    <?php if (!empty($message)): ?>
+                        <div class="alert alert-<?php echo $messageType === 'error' ? 'error' : ($messageType === 'warning' ? 'warning' : 'success'); ?>">
+                            <?php echo htmlspecialchars($message); ?>
+                        </div>
+                    <?php endif; ?>
 
-                <div class="form-field">
-                    <label for="exam">Select Exam:</label>
-                    <?php
-                        $sql = "SELECT E_Name FROM exam";
-                        $result = $conn->query($sql);
-                        if($result && $result->num_rows > 0){
-                    ?>
-                    <select name="exam" id="exam" required>
-                        <option value="" disabled <?php echo !$selectedExamId ? 'selected' : ''; ?>>Select an exam</option>
+                    <form action="registerExam.php<?php echo $selectedExamId ? '?id=' . htmlspecialchars($selectedExamId) : ''; ?>" method="post">
 
-                        <?php
-                            while ($row = $result->fetch_assoc()) {
-                                $examName = $row['E_Name'];
-                                $selected = ($examDetails && $examDetails['E_Name'] === $examName) ? 'selected' : '';
-                                echo "<option value=\"" . htmlspecialchars($examName) . "\" $selected>" . htmlspecialchars($examName) . "</option>";
-                            }
+                        <div class="form-group">
+                            <label for="employee-id" class="form-label">Employee ID</label>
+                            <input type="text" name="employee-id" id="employee-id" class="form-control" placeholder="Enter Employee ID" required>
+                        </div>
 
-                        ?>
-                    </select>
-                    <?php
-                        }
-                        else{
-                        echo "<p style='color: #721c24;'>No exam found.</p>";
-                        }
-                    ?>
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" name="email" class="form-control" placeholder="Enter Email" value="<?php echo isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : ''; ?>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="exam" class="form-label">Select Exam</label>
+                            <?php
+                                $sql = "SELECT E_Name FROM exam";
+                                $result = $conn->query($sql);
+                                if($result && $result->num_rows > 0){
+                            ?>
+                            <select name="exam" id="exam" class="form-control" required onchange="if(this.value) window.location.href='registerExam.php?id=' + (this.options[this.selectedIndex].getAttribute('data-id') || '') + '&exam_name=' + encodeURIComponent(this.value)">
+                                <option value="" disabled <?php echo !$selectedExamId ? 'selected' : ''; ?>>Select an exam</option>
+
+                                <?php
+                                    // We need E_ID to reload the page with details.
+                                    // The current logic uses ?id=E_ID.
+                                    // But the select option value is E_Name.
+                                    // I need to fetch E_ID as well.
+                                    $sql = "SELECT E_ID, E_Name FROM exam";
+                                    $result = $conn->query($sql);
+
+                                    while ($row = $result->fetch_assoc()) {
+                                        $examName = $row['E_Name'];
+                                        $examId = $row['E_ID'];
+                                        $selected = ($examDetails && $examDetails['E_Name'] === $examName) ? 'selected' : '';
+                                        echo "<option value=\"" . htmlspecialchars($examName) . "\" data-id=\"" . htmlspecialchars($examId) . "\" $selected>" . htmlspecialchars($examName) . "</option>";
+                                    }
+
+                                ?>
+                            </select>
+                            <?php
+                                }
+                                else{
+                                echo "<p class='text-error'>No exam found.</p>";
+                                }
+                            ?>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Register Exam</button>
+                    </form>
                 </div>
-
-                <input type="submit" value="Register Exam">
-            </form>
+            </div>
         </div>
     </div>
 

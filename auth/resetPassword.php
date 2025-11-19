@@ -1,167 +1,105 @@
 <?php
-include('../config/config.php');
+require_once '../config/config.php';
 
-if (session_status() == PHP_SESSION_NONE) {
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// if (!isset($_SESSION['nic']) || !isset($_SESSION['staffId'])) {
-//     die("Session variables not set. Please go back to the forgot password page.");
-// }
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $newPassword = $_POST['newPassword'];
-    $confirmPassword = $_POST['confirmPassword'];
+if (!isset($_SESSION['nic']) || !isset($_SESSION['staffId'])) {
+    header("Location: forgetPassword.php");
+    exit();
+}
 
-     if($newPassword === $confirmPassword)
-     {
+$errors = [];
+$message = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $newPassword = $_POST['newPassword'] ?? '';
+    $confirmPassword = $_POST['confirmPassword'] ?? '';
+
+    if (strlen($newPassword) < 8) {
+        $errors[] = "Password must be at least 8 characters long.";
+    }
+
+    if ($newPassword !== $confirmPassword) {
+        $errors[] = "Passwords do not match.";
+    }
+
+    if (!$errors) {
         $nic = $_SESSION['nic'];
         $staffId = $_SESSION['staffId'];
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
-        $hashedPassword = password_hash($newPassword,PASSWORD_DEFAULT);
-
-        $query="UPDATE staff SET password = '$hashedPassword' WHERE NIC = '$nic' AND S_ID='$staffId'";
-
-        if(mysqli_query($conn,$query))
-        {
-            $message = "Password has been update successfully....";
-            session_destroy();
-          header("Location: login.php"); // Redirect after successful update
-        exit();
-        }
-        else{
-            $message = "Error in updating password.". mysqli_error($conn); ;
+        // Use prepared statement
+        $stmt = $conn->prepare("UPDATE staff SET password = ? WHERE NIC = ? AND S_ID = ?");
+        if ($stmt) {
+            $stmt->bind_param("sss", $hashedPassword, $nic, $staffId);
+            if ($stmt->execute()) {
+                session_destroy();
+                header("Location: login.php?reset=success");
+                exit();
+            } else {
+                $errors[] = "Error updating password: " . $conn->error;
+            }
+            $stmt->close();
+        } else {
+            $errors[] = "Database error.";
         }
     }
-        else{
-            $message ="password do not match!!!!";
-        }
-     }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password</title>
-    <link rel="stylesheet" href="../styles/style.css">
-    <style>
-        body {
-    font-family: Arial, sans-serif;
-    background-color: #3e3939;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.password_container {
-    background-color: #e0f7fa;
-    padding: 35px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    text-align: center;
-    opacity: 2;
-    /* transform: translateY(0); */
-    /* transition: all 0.3s ease; */
-}
-
-h2 {
-    margin-bottom: 20px;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-input[type="text"],
-input[type="password"] {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-}
-
-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #00bcd4 ;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #ab4eba;
-}
-
-.hidden {
-    opacity: 0;
-    height: 0;
-    visibility: hidden;
-    transform: translateY(-20px);
-    transition: all 0.3s ease;
-}
-
-#resetForm.show {
-    opacity: 1;
-    height: auto;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-#message {
-    color: red;
-    margin-top: 10px;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-}
-
-#message.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-#errorMessage {
-    color: red;
-    margin-top: 10px;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-}
-
-#errorMessage.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-    </style>
+    <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="../styles/auth.css">
 </head>
 <body>
-    <?php
-        include ('../includes/header.php')
-    ?>
-    <div class="password_container">
-        <h2>Reset Password</h2>
-        <form method="POST" action="resetpassword.php" method="post">
-            <label for="newPassword">New Password:</label>
-            <input type="password" id="newPassword" name="newPassword" required>
+<div class="auth-wrapper" role="main">
+    <div class="auth-card">
+        <header class="auth-header">
+            <h1 class="auth-title">Reset Password</h1>
+            <p class="auth-subtitle">Create a new password for your account.</p>
+        </header>
 
-            <label for="confirmPassword">Confirm Password:</label>
-            <input type="password" id="confirmPassword" name="confirmPassword" required>
+        <?php if ($errors): ?>
+            <div class="alert alert-error" role="alert">
+                <ul class="alert-list">
+                    <?php foreach ($errors as $error): ?>
+                        <li><?php echo htmlspecialchars($error); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
 
-            <button type="submit">Update Password</button>
+        <form method="post" class="auth-form">
+            <div class="form-field password-field">
+                <label for="newPassword">New Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="newPassword" name="newPassword" required minlength="8" autocomplete="new-password" data-password-field>
+                    <button type="button" class="password-toggle" data-toggle-password aria-label="Toggle password visibility">
+                        <span class="toggle-text">Show</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-field password-field">
+                <label for="confirmPassword">Confirm Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8" autocomplete="new-password" data-password-field>
+                    <button type="button" class="password-toggle" data-toggle-password aria-label="Toggle password visibility">
+                        <span class="toggle-text">Show</span>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="auth-button">Update Password</button>
         </form>
-        <div id="message"></div>
     </div>
-    <?php
-        include ('../includes/footer.php')
-    ?>
+</div>
+<script src="../scripts/auth.js" defer></script>
 </body>
 </html>

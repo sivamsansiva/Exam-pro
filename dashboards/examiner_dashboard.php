@@ -9,6 +9,72 @@
         header("Location: ../auth/login.php");
         exit();
     }
+
+    // Handle Profile Update
+    $updateSuccess = false;
+    if (isset($_POST['update_profile'])) {
+        $Fname = mysqli_real_escape_string($conn, $_POST["fname"]);
+        $Lname = mysqli_real_escape_string($conn, $_POST["lname"]);
+        $Email = mysqli_real_escape_string($conn, $_POST["email"]);
+        $DOB = mysqli_real_escape_string($conn, $_POST["dob"]);
+        $gender = mysqli_real_escape_string($conn, $_POST["gender"]);
+        $phoneNo = mysqli_real_escape_string($conn, $_POST['phone']);
+
+        $sql2 = "UPDATE staff SET F_Name='$Fname', L_Name='$Lname', Gender='$gender', Email='$Email', DOB='$DOB' WHERE Role='Examiner'";
+        $result = mysqli_query($conn, $sql2);
+
+        // Get Examiner ID to update phone
+        $examinerQuery = "SELECT S_ID FROM staff WHERE Role='Examiner'";
+        $examinerResult = mysqli_query($conn, $examinerQuery);
+        $examinerRow = mysqli_fetch_assoc($examinerResult);
+        $Sid = $examinerRow['S_ID'];
+
+        $sql3 = "UPDATE staff_phone_no SET S_phone_no='$phoneNo' WHERE S_ID='$Sid'";
+        $result3 = mysqli_query($conn, $sql3);
+
+        if ($result && $result3) {
+            $updateSuccess = true;
+        }
+    }
+
+    // Handle Add Exam
+    $addExamSuccess = false;
+    if (isset($_POST['add_exam'])) {
+        $exam_id = $_POST["exam_id"];
+        $ename = $_POST["ename"];
+        $qpassword = $_POST["qpassword"];
+        $Duration = $_POST["duration"];
+        $sid = $_POST["sid"];
+
+        // Use prepared statements to prevent SQL injection
+        $stmt = $conn->prepare("INSERT INTO exam (E_ID, E_Name, Q_password, Duration, S_ID) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $exam_id, $ename, $qpassword, $Duration, $sid);
+
+        if ($stmt->execute()) {
+            $addExamSuccess = true;
+        } else {
+            $addExamError = $stmt->error;
+        }
+        $stmt->close();
+    }
+
+    // Fetch Examiner Details
+    $sql1 = "SELECT * FROM staff WHERE Role='Examiner'";
+    $result = mysqli_query($conn, $sql1);
+    $row = $result->fetch_assoc();
+    $Sid = $row['S_ID'];
+    $Fname = $row['F_Name'];
+    $Lname = $row['L_Name'];
+    $DOB = $row['DOB'];
+    $Email = $row['Email'];
+    $gender = $row['Gender'];
+    $Age = $row['Age'];
+
+    // Fetch Examiner Phone
+    $sql1 = "SELECT * FROM staff_phone_no WHERE S_ID='$Sid'";
+    $result = mysqli_query($conn, $sql1);
+    $phoneRow = $result->fetch_assoc();
+    $phoneNo = $phoneRow['S_phone_no'];
 ?>
 
 <!DOCTYPE html>
@@ -16,305 +82,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Examiner Profile Page</title>
-    <link rel="stylesheet" href="../styles/style.css">
+    <title>Examiner Dashboard - ExamPro</title>
     <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <?php
-        include ("../includes/header.php");
-    ?>
-    <div class="admin-container">
-        <main class="main-content">
-            <!--================ Examiner Profile Section ===============-->
-            <section id="profile">
-                <div class="section-header">
-                    <h2>Examiner Profile</h2>
-                </div>
-                <div class="profile-section" id="profile-section">
+    <?php include ("../includes/header.php"); ?>
 
-                 <?php
-                    $sql1 = "SELECT * FROM staff WHERE Role='Examiner'";
-                        $result = mysqli_query($conn, $sql1);
-                        $row = $result->fetch_assoc();
-                        $Sid = $row['S_ID'];
-                        $Fname = $row['F_Name'];
-                        $Lname = $row['L_Name'];
-                        $DOB = $row['DOB'];
-                        $Email = $row['Email'];
-                        $gender = $row['Gender'];
-                        $Age=$row['Age'];
-
-                        // Fetch candidate phone number
-                        $sql1 = "SELECT * FROM staff_phone_no WHERE S_ID='$Sid'";
-                        $result = mysqli_query($conn, $sql1);
-                        $row = $result->fetch_assoc();
-
-                        $phoneNo = $row['S_phone_no'];
-
-                        // Check if form is submitted
-                        if (isset($_POST['submit'])) {
-                            $Fname = isset($_POST["fname"]) ? $_POST["fname"] : "";  // Check if 'fname' exists in $_POST
-                            $Lname = isset($_POST["lname"]) ? $_POST["lname"] : "";  // Check if 'lname' exists in $_POST
-                            $Email = isset($_POST["email"]) ? $_POST["email"] : "";  // Check if 'email' exists in $_POST
-                            $DOB = isset($_POST["dob"]) ? $_POST["dob"] : "";        // Check if 'dob' exists in $_POST
-                            $gender = isset($_POST["gender"]) ? $_POST["gender"] : "";// Check if 'gender' exists in $_POST
-                            $phoneNo = isset($_POST['phone']) ? $_POST['phone'] : "";
-                            // Update the candidate information
-                            $sql2 = "UPDATE staff SET F_Name='$Fname', L_Name='$Lname', Gender='$gender', Email='$Email', DOB='$DOB' WHERE Role='Admin'";
-
-                            $result = mysqli_query($conn, $sql2);
-
-                        $sql2="UPDATE  staff_phone_no SET S_phone_no='$phoneNo' WHERE S_ID='$Sid'";
-
-                        $result = mysqli_query($conn, $sql2);
-                        }
-                        ?>
-             <form method="post" id="profile-form">
-             <h3 id="heading">Examiner details</h3>
-            <label>First Name: </label><br>
-            <input type="text" name="fname" placeholder="Enter First Name" value="<?php echo $Fname; ?>" required><br>
-
-            <label>Last Name: </label><br>
-            <input type="text" name="lname" placeholder="Enter Last Name" value="<?php echo $Lname; ?>" required><br>
-
-            <label>Gender: </label>
-            <label>
-                <input type="radio" id="Male" name="gender" value="Male" <?php if ($gender == "Male") echo "checked"; ?>> Male
-                <input type="radio" id="Female" name="gender" value="Female" <?php if ($gender == "Female") echo "checked"; ?>> Female<br>
-            </label><br>
-
-            <label>Mobile Number: </label><br>
-            <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" placeholder="07XXXXXXXX" value="<?php echo $phoneNo; ?>" required><br>
-
-            <label>Email: </label><br>
-            <input type="email" id="email" name="email" placeholder="Enter Email" value="<?php echo $Email; ?>" required><br>
-
-            <label>Date of Birth: </label><br>
-            <input type="date" name="dob" value="<?php echo $DOB; ?>" required><br>
-
-
-            <center>
-            <input type="submit" name="submit" id="submitbtn" value="Update"><br>
-            </center>
-            </form>
-                </div>
-
-            </section>
-    <div>
-            <!-- ================Manage Exams Section====================-->
-            <section id="manage-exams">
-                <div class="section-header">
-                    <h2>Manage Exams</h2>
-                    <button class="btn add-btn" id="openPopupBtn">Add New
-                        Exam</button>
-
-<!-- The Modal -->
-<div id="myModal" class="modal">
-
-    <div class="modal-content">
-        <button class="close">close</button>
-        <!-- PHP Form Start -->
-        <?php
-        include("../config/config.php");
-
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $exam_id = $_POST["exam_id"];
-            $ename = $_POST["ename"];
-            $qpassword = $_POST["qpassword"];
-            $Duration = $_POST["duration"];
-            $sid = $_POST["sid"];
-
-            global $conn;
-            $message = "";
-
-            // Use prepared statements to prevent SQL injection
-            $stmt = $conn->prepare("INSERT INTO exam (E_ID, E_Name, Q_password, Duration, S_ID) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssss", $exam_id, $ename, $qpassword, $Duration, $sid);
-
-            if ($stmt->execute()) {
-                echo '<script>alert("New Exam added Successfully");</script>';
-                if ($_SESSION['Role'] == 'Examiner') {
-                    echo '<script>window.location.href = "examiner_dashboard.php";</script>';
-                } elseif ($_SESSION['Role'] == 'Manager') {
-                    echo '<script>window.location.href = "manager_dashboard.php";</script>';
-                } elseif ($_SESSION['Role'] == 'Admin') {
-                    echo '<script>window.location.href = "admin_dashboard.php";</script>';
-                }
-            } else {
-                echo "Error: " . $stmt->error;
-            }
-
-            $stmt->close();
-        }
-        ?>
-
-        <!--================ Add Exam Form ==================== -->
-        <div class="add-exam">
-            <h2 id="heading"> Add Exam </h2>
-
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-
-                <label for="exam_id">Exam ID:</label><br>
-                <input type="text" id="exam_id" name="exam_id" required placeholder="Exam ID"><br>
-
-                <label for="ename">Exam Name:</label><br>
-                <input type="text" id="ename" name="ename" required placeholder="Exam Name"><br>
-
-                <label for="qpassword">Quiz Password:</label><br>
-                <input type="text" id="qpassword" name="qpassword" required placeholder="Quiz Password"><br>
-
-                <label for="duration">Exam Duration:</label><br>
-                <input type="text" name="duration" id="duration" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" placeholder="00:00:00" required><br>
-
-                <label for="sid">Staff ID:</label><br>
-                <?php
-                // Select staff IDs from database
-                $sql = "SELECT S_ID FROM staff";
-                $result = $conn->query($sql);
-                if ($result->num_rows > 0) {
-                ?>
-                    <select name="sid" id="sid" required>
-                        <option value="" disabled selected>Select Staff ID</option>
-                        <?php
-                        while ($row = $result->fetch_assoc()) {
-                            $sid = $row['S_ID'];
-                            echo "<option>$sid</option>";
-                        }
-                        ?>
-                    </select><br>
-                    <?php
-                } else {
-                    echo "No Staff ID Found.";
-                }
-                ?>
-                <input type="submit" name="submit" value="Add Exam">
-            </form>
+    <div class="container mt-xl">
+        <div class="mb-xl">
+            <h1>Examiner Dashboard</h1>
+            <p>Manage exams and your profile.</p>
         </div>
-        <!--========= PHP Form End========= -->
-    </div>
-</div>
+
+        <?php if ($updateSuccess): ?>
+            <div class="alert alert-success mb-lg">
+                <i class="fas fa-check-circle"></i> Profile updated successfully!
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($addExamSuccess) && $addExamSuccess): ?>
+            <div class="alert alert-success mb-lg">
+                <i class="fas fa-check-circle"></i> New Exam added successfully!
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($addExamError)): ?>
+            <div class="alert alert-error mb-lg">
+                <i class="fas fa-exclamation-circle"></i> Error adding exam: <?php echo htmlspecialchars($addExamError); ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="grid-2">
+            <!-- Examiner Profile Section -->
+            <div class="card mb-xl">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-user-tie"></i> Examiner Profile</h2>
                 </div>
-                <div id="exam-list">
-                    <h3>Current Exams</h3>
-                    <table class="table-style">
-                        <thead>
+                <form method="post" id="profile-form">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="fname" class="form-control" value="<?php echo htmlspecialchars($Fname); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="lname" class="form-control" value="<?php echo htmlspecialchars($Lname); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <div style="display: flex; gap: 1.5rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" name="gender" value="Male" <?php if ($gender == "Male") echo "checked"; ?>> Male
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" name="gender" value="Female" <?php if ($gender == "Female") echo "checked"; ?>> Female
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="tel" name="phone" class="form-control" pattern="[0-9]{10}" value="<?php echo htmlspecialchars($phoneNo); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($Email); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="dob" class="form-control" value="<?php echo htmlspecialchars($DOB); ?>" required>
+                    </div>
+
+                    <button type="submit" name="update_profile" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
+                </form>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mb-xl">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-bolt"></i> Quick Actions</h2>
+                </div>
+                <div style="display: grid; gap: 1rem;">
+                    <button id="openPopupBtn" class="btn btn-secondary" style="justify-content: flex-start;">
+                        <i class="fas fa-plus-circle"></i> Add New Exam
+                    </button>
+                    <a href="#manage-exams" class="btn btn-outline" style="justify-content: flex-start;">
+                        <i class="fas fa-list"></i> Manage Exams
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Exams Section -->
+        <div class="card mb-xl" id="manage-exams">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-file-alt"></i> Manage Exams</h2>
+            </div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
                         <tr>
                             <th>Exam ID</th>
                             <th>Exam Name</th>
                             <th>Password</th>
                             <th>Duration</th>
-                            <th width= "18%">Operations</th>
+                            <th>Operations</th>
                         </tr>
-                        </thead>
-                        <tbody>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $sql = "SELECT E_ID, E_Name, Q_password, Duration, S_ID FROM exam";
+                        $result = mysqli_query($conn, $sql);
 
-                          <?php
-                            // Query to get exam details to display
-                            $sql = "SELECT E_ID, E_Name ,Q_password, Duration, S_ID FROM exam"; // Correct column name: 'duration'
-
-                            // Execute the query
-                            $result = mysqli_query($conn, $sql);
-
-                            // Check if the query returns any rows
-                            if ($result && mysqli_num_rows($result) > 0) {
-                                // Loop through the results
-                                while ($row = mysqli_fetch_assoc($result)) { // Using mysqli_fetch_assoc() for procedural style
-                                    $eid = $row['E_ID'];
-                                    $examname=$row['E_Name'];
-                                    $password = $row['Q_password'];
-                                    $duration = $row['Duration'];
-
-                                    // Output the table rows
-                                    echo '<tr>
-                                          <td>' . $eid. '</td>
-                                          <td>' . $examname . '</td>
-                                          <td>' . $password . '</td>
-                                          <td>' . $duration . '</td>
-                                          <td>
-                                            <center>
-                                              <button class="update-btn">
-                                                <a href="../exams/updateExam.php?updateid='.$eid.'">Update</a>
-                                              </button>
-                                              <button class = "delete-btn" onclick="ConfirmDelete_Exam()"><a href="../exams/deleteExam.php?deleteid='.$eid.'">delete</a></button>
-
-                                            </center>
-                                          </td>
-                                      </tr>';
-                                }
-                            } else {
-                                echo "<tr><td colspan='6'>No results found</td></tr>";
+                        if ($result && mysqli_num_rows($result) > 0) {
+                            while ($row = mysqli_fetch_assoc($result)) {
+                                echo '<tr>
+                                      <td>' . htmlspecialchars($row['E_ID']) . '</td>
+                                      <td>' . htmlspecialchars($row['E_Name']) . '</td>
+                                      <td>' . htmlspecialchars($row['Q_password']) . '</td>
+                                      <td>' . htmlspecialchars($row['Duration']) . '</td>
+                                      <td>
+                                          <div style="display: flex; gap: 0.5rem;">
+                                              <a href="../exams/updateExam.php?updateid=' . $row['E_ID'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                                              <a href="../exams/deleteExam.php?deleteid=' . $row['E_ID'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this exam?\')"><i class="fas fa-trash"></i></a>
+                                          </div>
+                                      </td>
+                                  </tr>';
                             }
-                          ?>
-                        </tbody>
-                    </table>
+                        } else {
+                            echo "<tr><td colspan='5' class='text-center'>No exams found</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Exam Modal -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Exam</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                <div class="form-group">
+                    <label for="exam_id" class="form-label">Exam ID</label>
+                    <input type="text" id="exam_id" name="exam_id" class="form-control" required placeholder="E001">
                 </div>
-            </section>
 
-    <script src="../scripts/script.js"></script>
+                <div class="form-group">
+                    <label for="ename" class="form-label">Exam Name</label>
+                    <input type="text" id="ename" name="ename" class="form-control" required placeholder="Mathematics">
+                </div>
+
+                <div class="form-group">
+                    <label for="qpassword" class="form-label">Quiz Password</label>
+                    <input type="text" id="qpassword" name="qpassword" class="form-control" required placeholder="Secret123">
+                </div>
+
+                <div class="form-group">
+                    <label for="duration" class="form-label">Exam Duration</label>
+                    <input type="text" name="duration" id="duration" class="form-control" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" placeholder="00:00:00" required>
+                    <small class="text-muted">Format: HH:MM:SS</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="sid" class="form-label">Staff ID</label>
+                    <?php
+                    $sql = "SELECT S_ID FROM staff";
+                    $result = $conn->query($sql);
+                    if ($result->num_rows > 0) {
+                    ?>
+                        <select name="sid" id="sid" class="form-control" required>
+                            <option value="" disabled selected>Select Staff ID</option>
+                            <?php
+                            while ($row = $result->fetch_assoc()) {
+                                $sid = $row['S_ID'];
+                                echo "<option>$sid</option>";
+                            }
+                            ?>
+                        </select>
+                    <?php
+                    } else {
+                        echo "<p class='text-error'>No Staff ID Found.</p>";
+                    }
+                    ?>
+                </div>
+
+                <button type="submit" name="add_exam" class="btn btn-primary" style="width: 100%;">Add Exam</button>
+            </form>
+        </div>
+    </div>
+
+    <?php include ("../includes/footer.php"); ?>
+
     <script>
+        // Modal Logic
+        const modal = document.getElementById("myModal");
+        const btn = document.getElementById("openPopupBtn");
+        const closeBtn = document.getElementsByClassName("modal-close")[0];
 
-// Add New Exam
-function addExam() {
-    const examList = document.getElementById('exam-list').querySelector('ul');
-    const newExam = document.createElement('li');
-    newExam.innerHTML = 'New Exam <button class="btn edit-btn" onclick="editExam()">Edit</button> <button class="btn delete-btn" onclick="deleteExam()">Delete</button>';
-    examList.appendChild(newExam);
-}
-// Add Exam
-function addExam() {
-    window.location.href = '../exams/addExam.php';
-}
-
-// Edit Exam
-function editExam() {
-    alert('Edit Exam feature is coming soon!');
-    window.location.href = '../exams/updateExam.php';
-}
-
-// Delete Exam
-function deleteExam() {
-    alert('Delete Exam feature is coming soon!');
-    window.location.href = '../exams/deleteExam.php';
-}
-
-// Function to update profile information via AJAX
-function updateProfile() {
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-
-    // Perform basic validation (optional)
-    if (name === '' || email === '') {
-        alert('Please fill out all fields.');
-        return;
-    }
-
-    // Prepare data to send to the server
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('email', email);
-
-    // Send the data using AJAX
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '../users/profile.php', true);
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            // Success message
-            alert('Profile updated successfully!');
-            document.getElementById('name').disabled = true;
-            document.getElementById('email').disabled = true;
-            document.getElementById('saveBtn').disabled = true;
-        } else {
-            // Error handling
-            alert('Error updating profile.');
+        if (btn) {
+            btn.onclick = function () {
+                modal.classList.add("show");
+            }
         }
-    };
-    xhr.send(formData);
-}
-    </script>
 
-    <?php
-        include ("../includes/footer.php")
-    ?>
+        if (closeBtn) {
+            closeBtn.onclick = function () {
+                modal.classList.remove("show");
+            }
+        }
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.classList.remove("show");
+            }
+        }
+    </script>
 </body>
 </html>

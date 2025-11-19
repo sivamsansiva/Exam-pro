@@ -9,499 +9,378 @@
         header("Location: ../auth/login.php");
         exit();
     }
-?>
 
+    // Handle Profile Update
+    $updateSuccess = false;
+    if (isset($_POST['update_profile'])) {
+        $Fname = mysqli_real_escape_string($conn, $_POST["fname"]);
+        $Lname = mysqli_real_escape_string($conn, $_POST["lname"]);
+        $Email = mysqli_real_escape_string($conn, $_POST["email"]);
+        $DOB = mysqli_real_escape_string($conn, $_POST["dob"]);
+        $gender = mysqli_real_escape_string($conn, $_POST["gender"]);
+        $phoneNo = mysqli_real_escape_string($conn, $_POST['phone']);
+
+        $sql2 = "UPDATE staff SET F_Name='$Fname', L_Name='$Lname', Gender='$gender', Email='$Email', DOB='$DOB' WHERE Role='Admin'";
+        $result = mysqli_query($conn, $sql2);
+
+        // Get Admin ID to update phone
+        $adminQuery = "SELECT S_ID FROM staff WHERE Role='Admin'";
+        $adminResult = mysqli_query($conn, $adminQuery);
+        $adminRow = mysqli_fetch_assoc($adminResult);
+        $Sid = $adminRow['S_ID'];
+
+        $sql3 = "UPDATE staff_phone_no SET S_phone_no='$phoneNo' WHERE S_ID='$Sid'";
+        $result3 = mysqli_query($conn, $sql3);
+
+        if ($result && $result3) {
+            $updateSuccess = true;
+        }
+    }
+
+    // Fetch Admin Details
+    $sql1 = "SELECT * FROM staff WHERE Role='Admin'";
+    $result = mysqli_query($conn, $sql1);
+    $row = $result->fetch_assoc();
+    $Sid = $row['S_ID'];
+    $Fname = $row['F_Name'];
+    $Lname = $row['L_Name'];
+    $DOB = $row['DOB'];
+    $Email = $row['Email'];
+    $gender = $row['Gender'];
+    $Age = $row['Age'];
+
+    // Fetch Admin Phone
+    $sql1 = "SELECT * FROM staff_phone_no WHERE S_ID='$Sid'";
+    $result = mysqli_query($conn, $sql1);
+    $phoneRow = $result->fetch_assoc();
+    $phoneNo = $phoneRow['S_phone_no'];
+?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Profile Page</title>
-    <link rel="stylesheet" href="../styles/style.css">
+    <title>Admin Dashboard - ExamPro</title>
     <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <?php
-     include('../includes/header.php');
-    ?>
-    <div class="admin-container">
-        <main class="main-content">
-            <!--================ Admin Profile Section ===============-->
-            <section id="profile">
-                <div class="section-header">
-                    <h2>Admin Profile</h2>
-                    <br>
-                    <br>
+    <?php include('../includes/header.php'); ?>
+
+    <div class="container mt-xl">
+        <div class="mb-xl">
+            <h1>Admin Dashboard</h1>
+            <p>Manage exams, users, and system settings.</p>
+        </div>
+
+        <?php if ($updateSuccess): ?>
+            <div class="alert alert-success mb-lg">
+                <i class="fas fa-check-circle"></i> Profile updated successfully!
+            </div>
+        <?php endif; ?>
+
+        <div class="grid-2">
+            <!-- Admin Profile Section -->
+            <div class="card mb-xl">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-user-shield"></i> Admin Profile</h2>
                 </div>
-                <div class="profile-section" id="profile-section">
+                <form method="post" id="profile-form">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="fname" class="form-control" value="<?php echo htmlspecialchars($Fname); ?>" required>
+                    </div>
 
-                 <?php
-                    $sql1 = "SELECT * FROM staff WHERE Role='Admin'";
-                        $result = mysqli_query($conn, $sql1);
-                        $row = $result->fetch_assoc();
-                        $Sid = $row['S_ID'];
-                        $Fname = $row['F_Name'];
-                        $Lname = $row['L_Name'];
-                        $DOB = $row['DOB'];
-                        $Email = $row['Email'];
-                        $gender = $row['Gender'];
-                        $Age=$row['Age'];
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="lname" class="form-control" value="<?php echo htmlspecialchars($Lname); ?>" required>
+                    </div>
 
-                        // Fetch candidate phone number
-                        $sql1 = "SELECT * FROM staff_phone_no WHERE S_ID='$Sid'";
-                        $result = mysqli_query($conn, $sql1);
-                        $row = $result->fetch_assoc();
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <div style="display: flex; gap: 1.5rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" name="gender" value="Male" <?php if ($gender == "Male") echo "checked"; ?>> Male
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" name="gender" value="Female" <?php if ($gender == "Female") echo "checked"; ?>> Female
+                            </label>
+                        </div>
+                    </div>
 
-                        $phoneNo = $row['S_phone_no'];
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="tel" name="phone" class="form-control" pattern="[0-9]{10}" value="<?php echo htmlspecialchars($phoneNo); ?>" required>
+                    </div>
 
-                        // Check if form is submitted
-                        if (isset($_POST['submit'])) {
-                            $Fname = isset($_POST["fname"]) ? $_POST["fname"] : "";  // Check if 'fname' exists in $_POST
-                            $Lname = isset($_POST["lname"]) ? $_POST["lname"] : "";  // Check if 'lname' exists in $_POST
-                            $Email = isset($_POST["email"]) ? $_POST["email"] : "";  // Check if 'email' exists in $_POST
-                            $DOB = isset($_POST["dob"]) ? $_POST["dob"] : "";        // Check if 'dob' exists in $_POST
-                            $gender = isset($_POST["gender"]) ? $_POST["gender"] : "";// Check if 'gender' exists in $_POST
-                            $phoneNo = isset($_POST['phone']) ? $_POST['phone'] : "";
-                            // Update the candidate information
-                            $sql2 = "UPDATE staff SET F_Name='$Fname', L_Name='$Lname', Gender='$gender', Email='$Email', DOB='$DOB' WHERE Role='Admin'";
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($Email); ?>" required>
+                    </div>
 
-                            $result = mysqli_query($conn, $sql2);
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="dob" class="form-control" value="<?php echo htmlspecialchars($DOB); ?>" required>
+                    </div>
 
-                        $sql2="UPDATE  staff_phone_no SET S_phone_no='$phoneNo' WHERE S_ID='$Sid'";
+                    <button type="submit" name="update_profile" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
+                </form>
+            </div>
 
-                        $result = mysqli_query($conn, $sql2);
-                        }
-                        ?>
-             <form method="post" id="profile-form">
-             <h3 id="heading">Admin details</h3>
-            <label>First Name: </label><br>
-            <input type="text" name="fname" placeholder="Enter First Name" value="<?php echo $Fname; ?>" required><br>
-
-            <label>Last Name: </label><br>
-            <input type="text" name="lname" placeholder="Enter Last Name" value="<?php echo $Lname; ?>" required><br>
-
-            <label>Gender: </label>
-            <label>
-                <input type="radio" id="Male" name="gender" value="Male" <?php if ($gender == "Male") echo "checked"; ?>> Male
-                <input type="radio" id="Female" name="gender" value="Female" <?php if ($gender == "Female") echo "checked"; ?>> Female<br>
-            </label><br>
-
-            <label>Mobile Number: </label><br>
-            <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" placeholder="07XXXXXXXX" value="<?php echo $phoneNo; ?>" required><br>
-
-            <label>Email: </label><br>
-            <input type="email" id="email" name="email" placeholder="Enter Email" value="<?php echo $Email; ?>" required><br>
-
-            <label>Date of Birth: </label><br>
-            <input type="date" name="dob" value="<?php echo $DOB; ?>" required><br>
-
-
-            <center>
-            <input type="submit" name="submit" id="submitbtn" value="Update"><br>
-            </center>
-            </form>
+            <!-- Quick Stats or Actions could go here -->
+            <div class="card mb-xl">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-bolt"></i> Quick Actions</h2>
                 </div>
-
-            </section>
-    <div>
-            <!-- ================Manage Exams Section====================-->
-            <section id="manage-exams">
-                <div class="section-header">
-                    <h2>Manage Exams</h2>
+                <div style="display: grid; gap: 1rem;">
+                    <a href="../exams/addExam.php" class="btn btn-secondary" style="justify-content: flex-start;">
+                        <i class="fas fa-plus-circle"></i> Add New Exam
+                    </a>
+                    <a href="#manage-exams" class="btn btn-outline" style="justify-content: flex-start;">
+                        <i class="fas fa-list"></i> Manage Exams
+                    </a>
+                    <a href="#candidates" class="btn btn-outline" style="justify-content: flex-start;">
+                        <i class="fas fa-users"></i> Manage Candidates
+                    </a>
+                    <a href="#staff" class="btn btn-outline" style="justify-content: flex-start;">
+                        <i class="fas fa-user-tie"></i> Manage Staff
+                    </a>
                 </div>
-                <div id="exam-list">
-                    <h3>Current Exams</h3>
-                    <table class="table-style">
-                        <thead>
+            </div>
+        </div>
+
+        <!-- Manage Exams Section -->
+        <div class="card mb-xl" id="manage-exams">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-file-alt"></i> Manage Exams</h2>
+            </div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
                         <tr>
                             <th>Exam ID</th>
                             <th>Exam Name</th>
                             <th>Password</th>
                             <th>Duration</th>
                             <th>Uploaded by</th>
-                            <th width= "18%">Operations</th>
+                            <th>Operations</th>
                         </tr>
-                        </thead>
-                        <tbody>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $sql = "SELECT E_ID, E_Name, Q_password, Duration, S_ID FROM exam";
+                        $result = mysqli_query($conn, $sql);
 
-                          <?php
-                            // Query to get exam details to display
-                            $sql = "SELECT E_ID, E_Name ,Q_password, Duration, S_ID FROM exam"; // Correct column name: 'duration'
-
-                            // Execute the query
-                            $result = mysqli_query($conn, $sql);
-
-                            // Check if the query returns any rows
-                            if ($result && mysqli_num_rows($result) > 0) {
-                                // Loop through the results
-                                while ($row = mysqli_fetch_assoc($result)) { // Using mysqli_fetch_assoc() for procedural style
-                                    $eid = $row['E_ID'];
-                                    $examname=$row['E_Name'];
-                                    $password = $row['Q_password'];
-                                    $duration = $row['Duration'];
-                                    $uploader = $row['S_ID'];
-
-                                    // Output the table rows
-                                    echo '<tr>
-                                          <td>' . $eid. '</td>
-                                          <td>' . $examname . '</td>
-                                          <td>' . $password . '</td>
-                                          <td>' . $duration . '</td>
-                                          <td>' . $uploader . '</td>
-                                          <td>
-                                            <center>
-                                              <button class="update-btn">
-                                                <a href="../exams/updateExam.php?updateid='.$eid.'">Update</a>
-                                              </button>
-                                              <button class = "delete-btn" onclick="ConfirmDelete_Exam()"><a href="../exams/deleteExam.php?deleteid='.$eid.'">delete</a></button>
-
-                                            </center>
-                                          </td>
-                                      </tr>';
-                                }
-                            } else {
-                                echo "<tr><td colspan='6'>No results found</td></tr>";
+                        if ($result && mysqli_num_rows($result) > 0) {
+                            while ($row = mysqli_fetch_assoc($result)) {
+                                echo '<tr>
+                                      <td>' . htmlspecialchars($row['E_ID']) . '</td>
+                                      <td>' . htmlspecialchars($row['E_Name']) . '</td>
+                                      <td>' . htmlspecialchars($row['Q_password']) . '</td>
+                                      <td>' . htmlspecialchars($row['Duration']) . '</td>
+                                      <td>' . htmlspecialchars($row['S_ID']) . '</td>
+                                      <td>
+                                          <div style="display: flex; gap: 0.5rem;">
+                                              <a href="../exams/updateExam.php?updateid=' . $row['E_ID'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                                              <a href="../exams/deleteExam.php?deleteid=' . $row['E_ID'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this exam?\')"><i class="fas fa-trash"></i></a>
+                                          </div>
+                                      </td>
+                                  </tr>';
                             }
-                          ?>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            <br>
-            <br>
+                        } else {
+                            echo "<tr><td colspan='6' class='text-center'>No exams found</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                    <!--===========Staffs Section =============-->
-
-                    <section id="candidates">
-                <div class="section-header">
-                    <h2>Exam Candidates</h2>
-                </div>
-            <section id="section-header">
-                <div id="canditate-list">
-                    <h3>Exam Candidate Details</h3>
-                    <table class="table-style" id="displayEC">
-                            <thead>
-                            <tr>
-                            <th>Candidate ID</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Department ID</th>
-                            <th>Date of Birth</th>
+        <!-- Exam Candidates Section -->
+        <div class="card mb-xl" id="candidates">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-user-graduate"></i> Exam Candidates</h2>
+            </div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Dept ID</th>
+                            <th>DOB</th>
                             <th>NIC</th>
                             <th>Email</th>
-                            <th>Age</th>
                             <th>Gender</th>
-                            <th width="18%">Operations</th>
-                            </tr>
-                        </thead>
+                            <th>Operations</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         <?php
-                            // Query to get exam details to display
-                            $sql = "SELECT C_ID,F_Name,L_Name,D_ID,DOB,NIC,Email,Age,Gender FROM exam_candidate"; // Correct column name: 'duration'
+                        $sql = "SELECT C_ID, F_Name, L_Name, D_ID, DOB, NIC, Email, Gender FROM exam_candidate";
+                        $result = mysqli_query($conn, $sql);
 
-                            // Execute the query
-                            $result = mysqli_query($conn, $sql);
-
-                            if($result && $result->num_rows > 0 ){
-
-                                while($row = $result->fetch_assoc()){
-
-                                    $cid = $row['C_ID'];
-                                    $FName = $row['F_Name'];
-                                    $LName = $row['L_Name'];
-                                    $DID = $row['D_ID'];
-                                    $DOB = $row['DOB'];
-                                    $NIC = $row['NIC'];
-                                    $Email = $row['Email'];
-                                    $Gender = $row['Age'];
-                                    $Age = $row['Gender'];
-
-
-
-                                    echo '<tr>
-                                        <td>'.$cid.'</td>
-                                        <td>'.$FName.'</td>
-                                        <td>'.$LName.'</td>
-                                        <td>'.$DID.'</td>
-                                        <td>'.$DOB.'</td>
-                                        <td>'.$NIC.'</td>
-                                        <td>'.$Email.'</td>
-                                        <td>'.$Age.'</td>
-                                        <td>'.$Gender.'</td>
-
-                                        <td>
-                                        <center>
-                                        <button class = "update-btn"><a href="../users/updateCandidate.php?updateid='.$cid.'">Update</a></button>
-                                        <button class = "delete-btn" onclick="ConfirmDelete()"><a href="../users/deleteCandidate.php?deleteid='.$cid.'">Delete</a></button>
-                                        </center>
-                                        </td>
-                                        </tr>';
-                                }} else {
-                                    echo "<tr><td colspan='6'>No results found</td></tr>";
-                                }
-
+                        if ($result && $result->num_rows > 0) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo '<tr>
+                                    <td>' . htmlspecialchars($row['C_ID']) . '</td>
+                                    <td>' . htmlspecialchars($row['F_Name'] . ' ' . $row['L_Name']) . '</td>
+                                    <td>' . htmlspecialchars($row['D_ID']) . '</td>
+                                    <td>' . htmlspecialchars($row['DOB']) . '</td>
+                                    <td>' . htmlspecialchars($row['NIC']) . '</td>
+                                    <td>' . htmlspecialchars($row['Email']) . '</td>
+                                    <td>' . htmlspecialchars($row['Gender']) . '</td>
+                                    <td>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <a href="../users/updateCandidate.php?updatcid=' . $row['C_ID'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                                            <a href="../users/deleteCandidate.php?deleteid=' . $row['C_ID'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this candidate?\')"><i class="fas fa-trash"></i></a>
+                                        </div>
+                                    </td>
+                                    </tr>';
+                            }
+                        } else {
+                            echo "<tr><td colspan='8' class='text-center'>No candidates found</td></tr>";
+                        }
                         ?>
                     </tbody>
-                    </table>
-                </div>
-                </section>
-
-            </section>
-
-        <br>
-        <br>
-
-
-            <!--================Staffs Section =======================-->
-        <div>
-            <section id="Staffs">
-                <div class="section-header">
-                    <h2>Staff</h2>
-                </div>
-                <div id="staff-list">
-                    <h3>staff Details</h3>
-                    <table class="table-style">
-                            <thead>
-                            <tr>
-                            <th>Staff ID</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Department ID</th>
-                            <th>Date of Birth</th>
-                            <th>NIC</th>
-                            <th>EMail</th>
-                            <th>Gender</th>
-                            <th>Age</th>
-                            <th>Role</th>
-                            <th width="18%">Operations</th>
-                            </tr>
-                        </thead>
-                    <tbody>
-                        <?php
-                            // Query to get exam details to display
-                            $sql = "SELECT S_ID,F_Name,L_Name,D_ID,DOB,NIC,Email,Gender,Age,Role FROM staff";
-                            // Execute the query
-                            $result = mysqli_query($conn, $sql);
-
-                            if($result && $result->num_rows > 0 ){
-
-                                while($row = $result->fetch_assoc()){
-
-                                    $Sid = $row['S_ID'];
-                                    $FName = $row['F_Name'];
-                                    $LName = $row['L_Name'];
-                                    $DID = $row['D_ID'];
-                                    $DOB = $row['DOB'];
-                                    $NIC = $row['NIC'];
-                                    $Email = $row['Email'];
-                                    $Gender = $row['Gender'];
-                                    $Age = $row['Age'];
-                                    $Role = $row['Role'];
-
-
-
-                                    echo '<tr>
-                                        <td>'.$Sid.'</td>
-                                        <td>'.$FName.'</td>
-                                        <td>'.$LName.'</td>
-                                        <td>'.$DID.'</td>
-                                        <td>'.$DOB.'</td>
-                                        <td>'.$NIC.'</td>
-                                        <td>'.$Email.'</td>
-                                        <td>'.$Gender.'</td>
-                                        <td>'.$Age.'</td>
-                                        <td>'.$Role.'</td>
-                                        <td>
-                                        <center>
-                                        <button class = "update-btn"><a href="../users/updateStaff.php?updateid='.$Sid.'">Update</a></button>
-                                        <button class = "delete-btn" onclick="ConfirmDelete()"><a href="../users/deleteStaff.php?deleteid='.$Sid.'">Delete</a></button>
-                                        </center>
-                                        </td>
-                                        </tr>';
-                                }} else {
-                                    echo "<tr><td colspan='6'>No results found</td></tr>";
-                                }
-
-                        ?>
-                    </tbody>
-                    </table>
-                </div>
-
-
-            </section>
+                </table>
+            </div>
         </div>
-        <br>
-        <br>
 
+        <!-- Staff Section -->
+        <div class="card mb-xl" id="staff">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-chalkboard-teacher"></i> Staff</h2>
+            </div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Dept ID</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Operations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $sql = "SELECT S_ID, F_Name, L_Name, D_ID, Email, Role FROM staff";
+                        $result = mysqli_query($conn, $sql);
 
-             <!--================== Manage Users Section ================-->
+                        if ($result && $result->num_rows > 0) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo '<tr>
+                                    <td>' . htmlspecialchars($row['S_ID']) . '</td>
+                                    <td>' . htmlspecialchars($row['F_Name'] . ' ' . $row['L_Name']) . '</td>
+                                    <td>' . htmlspecialchars($row['D_ID']) . '</td>
+                                    <td>' . htmlspecialchars($row['Email']) . '</td>
+                                    <td><span class="badge badge-info">' . htmlspecialchars($row['Role']) . '</span></td>
+                                    <td>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <a href="../users/updateStaff.php?updateid=' . $row['S_ID'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                                            <a href="../users/deleteStaff.php?deleteid=' . $row['S_ID'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this staff member?\')"><i class="fas fa-trash"></i></a>
+                                        </div>
+                                    </td>
+                                    </tr>';
+                            }
+                        } else {
+                            echo "<tr><td colspan='6' class='text-center'>No staff found</td></tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-
-            <section id="complaints">
-                <div class="section-header">
-                    <h2>Reports</h2>
-                </div>
-            <section id="complaints-list">
-                            <div class="section-header">
-                            <h3>Recent complaints</h3>
-                            </div>
-                            <div>
-                        <table class="table-style">
-                            <thead>
-                            <tr>
-                            <th>Complaint ID</th>
-                            <th>Sender</th>
+        <!-- Complaints Section -->
+        <div class="card mb-xl" id="complaints">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-exclamation-circle"></i> Reports & Complaints</h2>
+            </div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Sender ID</th>
                             <th>Date</th>
                             <th>Title</th>
                             <th>Details</th>
-                            <th width="18%">Operations</th>
-                            </tr>
-                        </thead>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         <?php
-                            // Query to get exam details to display
-                            $sql = "SELECT C_No,C_ID,C_Date,C_Title,C_Details FROM complaint"; // Correct column name: 'duration'
+                        $sql = "SELECT C_No, C_ID, C_Date, C_Title, C_Details FROM complaint";
+                        $result = mysqli_query($conn, $sql);
 
-                            // Execute the query
-                            $result = mysqli_query($conn, $sql);
-
-                            if($result && $result->num_rows > 0 ){
-
-                                while($row = $result->fetch_assoc()){
-
-                                    $cno = $row['C_No'];
-                                    $cid = $row['C_ID'];
-                                    $date = $row['C_Date'];
-                                    $title = $row['C_Title'];
-                                    $details = $row['C_Details'];
-
-                                    echo '<tr>
-                                        <td>'.$cno.'</th>
-                                        <td>'.$cid.'</td>
-                                        <td>'.$date.'</td>
-                                        <td>'.$title.'</td>
-                                        <td>'.$details.'</td>
-
-                                        <td>
-                                        <center>
-                                        <button class = "reply-btn"><a href="">reply</a></button>
-                                        </center>
-                                        </td>
-                                        </tr>';
-                                }} else {
-                                    echo "<tr><td colspan='6'>No results found</td></tr>";
-                                }
-
+                        if ($result && $result->num_rows > 0) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo '<tr>
+                                    <td>' . htmlspecialchars($row['C_No']) . '</td>
+                                    <td>' . htmlspecialchars($row['C_ID']) . '</td>
+                                    <td>' . htmlspecialchars($row['C_Date']) . '</td>
+                                    <td>' . htmlspecialchars($row['C_Title']) . '</td>
+                                    <td>' . htmlspecialchars($row['C_Details']) . '</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-outline">Reply</a>
+                                    </td>
+                                    </tr>';
+                            }
+                        } else {
+                            echo "<tr><td colspan='6' class='text-center'>No complaints found</td></tr>";
+                        }
                         ?>
                     </tbody>
-                    </table>
-                </div>
-                </section>
-                </section>
+                </table>
+            </div>
+        </div>
 
-
-     <br>
-    <br>
-
-
-            <!-- Feedback & Complaints Section (Only Admin Viewable) -->
-
-                <div class="section-header">
-                    <h2>Feedback & Complaints</h2>
-                </div>
-                <div id="feedback-list">
-                    <h3>Feedbacks</h3>
-                     <!-- Manage Users Section -->
-             <section id="feedbacks">
-                            <div class="section-header">
-
-                        <table class="table-style">
-                            <thead>
-                            <tr>
-                            <th>Feedback ID</th>
-                            <th>Sender</th>
+        <!-- Feedback Section -->
+        <div class="card mb-xl" id="feedbacks">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-comment-dots"></i> Feedback</h2>
+            </div>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Sender ID</th>
                             <th>Date</th>
                             <th>Details</th>
-
-                            </tr>
-                        </thead>
+                        </tr>
+                    </thead>
                     <tbody>
                         <?php
-                            // Query to get exam details to display
-                            $sql = "SELECT Feedback_ID,C_ID,Date,F_Details FROM Feedback";
+                        $sql = "SELECT Feedback_ID, C_ID, Date, F_Details FROM Feedback";
+                        $result = mysqli_query($conn, $sql);
 
-                            // Execute the query
-                            $result = mysqli_query($conn, $sql);
-
-                            if($result && $result->num_rows > 0 ){
-
-                                while($row = $result->fetch_assoc()){
-
-                                    $Fid = $row['Feedback_ID'];
-                                    $sender = $row['C_ID'];
-                                    $Date = $row['Date'];
-                                    $Details = $row['F_Details'];
-
-                                    echo '<tr>
-                                        <td>'.$Fid.'</th>
-                                        <td>'.$sender.'</td>
-                                        <td>'.$Date.'</td>
-                                        <td>'.$Details.'</td>
-                                        </tr>';
-                                }} else {
-                                    echo "<tr><td colspan='6'>No results found</td></tr>";
-                                }
-
+                        if ($result && $result->num_rows > 0) {
+                            while ($row = $result->fetch_assoc()) {
+                                echo '<tr>
+                                    <td>' . htmlspecialchars($row['Feedback_ID']) . '</td>
+                                    <td>' . htmlspecialchars($row['C_ID']) . '</td>
+                                    <td>' . htmlspecialchars($row['Date']) . '</td>
+                                    <td>' . htmlspecialchars($row['F_Details']) . '</td>
+                                    </tr>';
+                            }
+                        } else {
+                            echo "<tr><td colspan='4' class='text-center'>No feedback found</td></tr>";
+                        }
                         ?>
                     </tbody>
-                    </table>
-                </div>
-            </section>
+                </table>
+            </div>
         </div>
     </div>
-            <br>
-            <br>
 
-
-
-    <script src="../scripts/script.js"></script>
-
-
-    <?php
-        include("../includes/footer.php");
-    ?>
-
-    <script>
-        const modal = document.getElementById("myModal");
-const btn = document.getElementById("openPopupBtn");
-const span = document.getElementsByClassName("close")[0];
-
-btn.onclick = function () {
-    modal.style.display = "block";
-}
-
-span.onclick = function () {
-    modal.style.display = "none";
-}
-
-window.onclick = function (event) {
-    if (event.target == modal) {
-        modal.style.display = "none";
-    }
-}
-function ConfirmDelete_Exam() {
-    // var E_ID = eid;
-    var result = confirm("Do you want to Delete?");
-    if (result) {
-        alert("You clicked ok !");
-        // window.location.href = ";
-    }
-    else {
-        alert("You clicked Cancel!");
-        window.location.href = "admin_dashboard.php";
-    }
-}
-    </script>
+    <?php include("../includes/footer.php"); ?>
 </body>
 </html>

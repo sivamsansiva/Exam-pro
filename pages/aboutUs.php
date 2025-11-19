@@ -16,124 +16,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us</title>
-    <link rel="stylesheet" href="../styles/style.css">
-    <style>
-        body {
-    background: linear-gradient(90deg,#C63C51 0%,#8C3061 50%, #4F1787 100%);
-}
-
-.AboutLinks {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100px;
-    gap: 25px;
-}
-.AboutLinks>li a:hover {
-    display: flex;
-    list-style: none;
-    color: rgb(10, 10, 10);
-    text-decoration:line-through;
-}
-
-.AboutLinks a {
-    color: rgb(9, 10, 9);
-    text-decoration:none;
-    font-size: 1rem;
-}
-
-img{
-    border: solid;
-    width: 100%;
-}
-
-.image{
-    text-align: center;
-}
-
-h1{
-    margin-bottom: 30px;
-    font-size: 32px;
-    text-align: center;
-    color: #fdfdfd;
-    padding-bottom: 10px;
-    text-decoration: underline;
-}
-
-h3{
-    padding: 15px 15px 0px 15px;
-}
-
-h5{
-    margin: 15px;
-    padding: 15px;
-}
-
-.box{
-    border-color: black;
-    border-width: 2px;
-    border-style:double;
-    display: inline-block;
-    width: 350px;
-    height:250px;
-}
-
-.para{
-    padding: 20px;
-}
-
-.box:hover{
-    background-color: rgb(222, 233, 239);
-
-}
-
-.subcontant{
-    text-align: center;
-}
-
-.secure p:first-child {
-    font-weight: bold;
-}
-
-.secure{
-    font-size: 1.2rem;
-    padding: 25px;
-}
-
-.content{
-    padding: 40px;
-    background-color: rgb(124, 206, 244);
-}
-
-.Maincontent{
-    width: 60%;
-    margin: 0 auto;
-    padding: 40px;
-}
-
-@media screen and (max-width: 768px) {
-    .Maincontent{
-        width: 90%;
-    }
-
-    .content{
-        width:90%;
-    }
-
-    h1 {
-        font-size: 2rem;
-        width: 90%;
-    }
-
-    h3 {
-        font-size: 1.5rem;
-    }
-
-    p {
-        font-size: 1rem;
-    }
-}
-    </style>
+    <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -141,70 +25,68 @@ h5{
     <?php
         include ("../includes/header.php");
     ?>
+
     <!-- About Us Page Content -->
-    <div class="Maincontent">
-        <div class="About">
-        <ul class="AboutLinks">
-            <li><a href="aboutUs.php">About us</a></li>
-            <li><a href="privacy.php">Privacy & Policy</a></li>
-            <li><a href="terms.php">Terms & Conditions</a></li>
-        </ul>
-
-        <h1>About Us</h1>
-        <div class="content">
-
-            <div class="image">
-            <img src="../assets/images/about.png" alt="image" width="750px">
-            </div> <br>
-
-            <div class="aboutcontant">
-                <h3>
-                    Welcome to Xampro, the leading provider of innovative online examination solutions tailored for employee
-                    assessments. Our mission is to revolutionize the way organizations evaluate and enhance their workforce's
-                    skills and knowledge.
-                </h3>
-                <h3>
-                    At Xampro, we understand the importance of efficient, secure, and scalable examination processes. Our
-                    state-of-the-art online examination system is designed to meet the diverse needs of businesses across various
-                    industries. Whether you are looking to conduct aptitude tests, technical assessments, or compliance exams, our
-                    platform offers a seamless and user-friendly experience.
-                </h3>
-            </div> <br>
-
-            <hr>
-            <br>
-            <div class="subcontant">
-            <div class="box">
-                <p class="para">Our Vision
-                We envision a future where employee assessments are not just a formality but a strategic tool for growth and
-                development. By leveraging cutting-edge technology, we aim to provide organizations with the insights they
-                need to make informed decisions and foster a culture of continuous improvement.</p>
-            </div>
-            <div class="box">
-                <p class="para">Our Mission
-                Our mission is to empower organizations with reliable and efficient online examination solutions that
-                enhance productivity, ensure compliance, and drive employee success. We are committed to delivering
-                exceptional service and support to help our clients achieve their assessment goals.</p>
-            </div>
-            </div>
-            <br>
-            <hr>
-            <br>
-            <div class="secure">
-            <p >Secure and Reliable:</p>
-
-            <p> Our platform ensures the highest level of security and integrity for all examinations,
-                protecting both the organization and the employees.
-                User-Friendly Interface: Designed with the end-user in mind, our system is easy to navigate, ensuring a smooth
-                experience for both administrators and examinees.
-                Customizable Solutions: We offer tailored solutions to meet the specific needs of your organization, from
-                question types to reporting formats.
-                Real-Time Analytics: Gain valuable insights with our comprehensive reporting and analytics tools, helping you
-                track performance and identify areas for improvement.
-                24/7 Support: Our dedicated support team is always available to assist you with any queries or issues,
-                ensuring a hassle-free experience.</p>
+    <div class="container mt-4 mb-4">
+        <div class="text-center mb-4">
+            <h1 class="mb-2">About Us</h1>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="aboutUs.php" class="btn btn-primary btn-sm">About Us</a>
+                <a href="privacy.php" class="btn btn-outline btn-sm">Privacy & Policy</a>
+                <a href="terms.php" class="btn btn-outline btn-sm">Terms & Conditions</a>
             </div>
         </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <img src="../assets/images/about.png" alt="About Us" style="max-width: 100%; height: auto; border-radius: var(--radius-lg);">
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="text-center mb-3">Welcome to ExamPro</h3>
+                    <p class="text-center" style="max-width: 800px; margin: 0 auto;">
+                        The leading provider of innovative online examination solutions tailored for employee assessments.
+                        Our mission is to revolutionize the way organizations evaluate and enhance their workforce's skills and knowledge.
+                    </p>
+                    <p class="text-center mt-2" style="max-width: 800px; margin: 0 auto;">
+                        At ExamPro, we understand the importance of efficient, secure, and scalable examination processes.
+                        Our state-of-the-art online examination system is designed to meet the diverse needs of businesses across various industries.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="card" style="background-color: var(--bg-primary); border: none;">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">Our Vision</h4>
+                            <p class="card-text">
+                                We envision a future where employee assessments are not just a formality but a strategic tool for growth and development.
+                                By leveraging cutting-edge technology, we aim to provide organizations with the insights they need.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="card" style="background-color: var(--bg-primary); border: none;">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">Our Mission</h4>
+                            <p class="card-text">
+                                Our mission is to empower organizations with reliable and efficient online examination solutions that enhance productivity,
+                                ensure compliance, and drive employee success.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <h4 class="alert-heading mb-2">Why Choose Us?</h4>
+                    <ul style="list-style-position: inside; margin-left: 1rem;">
+                        <li><strong>Secure and Reliable:</strong> Highest level of security and integrity.</li>
+                        <li><strong>User-Friendly Interface:</strong> Easy to navigate for everyone.</li>
+                        <li><strong>Customizable Solutions:</strong> Tailored to your specific needs.</li>
+                        <li><strong>Real-Time Analytics:</strong> Comprehensive reporting tools.</li>
+                        <li><strong>24/7 Support:</strong> Dedicated support team always available.</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 

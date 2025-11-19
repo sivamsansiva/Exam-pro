@@ -42,104 +42,50 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet" href="../styles/style.css">
-    <title> Add feedback </title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-body{
-    background: linear-gradient(90deg, #ffffff 0%, #EB8317 35%, #10375C 100%);
-}
-.add-exam {
-    width: 500px;
-    margin: 100px auto;
-    background-color: #c9c6c6;
-    box-shadow: 0 10px 20px rgba(12, 61, 223, 0.2);
-    padding: 20px;
-    border-radius: 5px;
-    transition: 0.3s;
-
-}
-
-.add-exam h1 {
-    font-size: 32px;
-    text-align: center;
-    margin-bottom: 20px;
-    color: rgb(12, 12, 12);
-}
-
-.add-exam form {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .add-exam label {
-    font-size: 18px;
-    margin-bottom: 10px;
-    color: rgb(26, 24, 24);
-  }
-
-  .add-exam input[type="text"],
-  .add-exam input[type="date"],
-  .add-exam input[type="file"],
-  .add-exam textarea,
-  .add-exam select {
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    font-family: 'Poppins', sans-serif;
-  }
-
-  .add-exam input[type="submit"] {
-    padding: 10px 20px;
-    border: none;
-    background-color: #333;
-    color: #fff;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-
-  .add-exam input[type="submit"]:hover {
-    background-color: #666;
-  }
-
-  select {
-    background-position: right center;
-    background-size: 20px;
-    padding-right: 30px;
-  }
-    </style>
+    <title>Add Feedback</title>
+    <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <?php
     include ("../includes/header.php");
 ?>
-    <!-- Add Exam content -->
+    <!-- Add Feedback content -->
+    <div class="container mt-4 mb-4">
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+            <div class="card-header">
+                <h2 class="card-title text-center">Add Feedback</h2>
+            </div>
+            <div class="card-body">
+                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                    <div class="form-group">
+                        <label for="feedback_id" class="form-label">Feedback ID:</label>
+                        <input type="text" id="feedback_id" name="feedback_id" class="form-control" required placeholder="Enter Feedback ID">
+                    </div>
 
-    <div class="add-exam">
-        <h2> Add feedback </h2>
+                    <div class="form-group">
+                        <label for="cid" class="form-label">Employee ID:</label>
+                        <input type="text" id="cid" name="cid" class="form-control" required placeholder="Enter Employee ID">
+                    </div>
 
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                    <div class="form-group">
+                        <label for="date" class="form-label">Date:</label>
+                        <input type="date" id="date" name="date" class="form-control" required value="<?php echo date('Y-m-d');?>" readonly>
+                    </div>
 
-            <label for="feedback_id">Feedback ID:</label><br>
-            <input type="text" id="feedback_id" name="feedback_id" required placeholder="Feedback ID"><br>
+                    <div class="form-group">
+                        <label for="details" class="form-label">Details:</label>
+                        <textarea id="details" name="details" rows="5" class="form-control" placeholder="Enter your feedback details here..." required></textarea>
+                    </div>
 
-            <label for="cid">Employee ID :</label><br>
-            <input type="text" id="cid" name="cid" required placeholder="Employee ID :"><br>
-
-            <label for="date">Date : </label><br>
-            <input type="date" id="date" name="date" required value="<?php echo date('Y-m-d');?>" disabled><br>
-
-            <label for="duration">Details:</label><br>
-            <textarea id="details" name="details" rows="5" placeholder="Enter the feedback"required></textarea><br>
-
-            <input type="submit" name="submit" value="Add Feedback" >
-        </form>
+                    <div class="text-center">
+                        <input type="submit" name="submit" value="Add Feedback" class="btn btn-primary btn-lg" style="width: 100%;">
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+
 <?php
     include ("../includes/footer.php");
 ?>

@@ -13,135 +13,47 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['r
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Exam Results</title>
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.2.0/fonts/remixicon.css" rel="stylesheet">
-  <link rel="stylesheet" href="../styles/style.css">
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="../styles/theme.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     .popup {
       display: none;
       position: fixed;
-      z-index: 1;
+      z-index: 1000;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .popup.show {
+      display: flex;
     }
 
     .popup-content {
-      background-color: white;
-      margin: 20% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 75%;
+      background-color: var(--white);
+      padding: var(--spacing-xl);
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 500px;
       text-align: center;
+      box-shadow: var(--shadow-xl);
+      position: relative;
+      animation: slideIn 0.3s ease-out;
     }
-    body{
-    background: linear-gradient(90deg, #ffffff 0%, #EB8317 35%, #10375C 100%);
-}
-.Result {
-    /* background-image: url('pngtree-vector-abstract-background-technology-concept-future-electric-blue-vector-png-image_23646548.jpg'); */
-    font-family: Arial, sans-serif;
-    /* background-color: #fff; */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-}
 
-
-.container {
-    background-color: #98c0da;
-    padding: 80px;
-    border-radius: 8px;
-    width: 500px;
-    text-align: center;
-    box-shadow: 0 5px 10px rgba(0,0,0,.2);
-    transition: 0.3s;
-
-}
-.container:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 15px rgba(0,0,0,.2);
-}
-
-h1 {
-    margin-bottom: 20px;
-}
-
-label {
-    display: block;
-    margin: 10px 0 5px;
-}
-
-input {
-    width: 80%;
-    padding: 8px;
-    margin-bottom: 15px;
-    border: 3px solid #938383;
-    border-radius: 4px;
-}
-
-button {
-    padding: 10px 15px;
-    background-color: #007BFF;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-#result {
-    margin-top: 20px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #fff;
-}
-.popup {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-
-  .popup-content {
-    background-color: white;
-    margin: 20% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 75%;
-    text-align: center;
-  }
-
-  #loader {
-    display: none;
-    font-size: 20px;
-    color: #333;
-    text-align: center;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9999;
-  }
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   </style>
 </head>
 
@@ -149,136 +61,109 @@ button:hover {
 <?php
     include ("../includes/header.php");
 ?>
-  <div class="Result">
-    <div class="container">
-      <h1>Exam Results</h1>
-
-      <!-- Form -->
-      <form id="resultForm" action="" method="post">
-        <label for="name">Employee Name:</label>
-        <input type="text" id="name" name="name" required>
-
-        <label for="id">Employee ID:</label>
-        <input type="text" id="id" name="C_ID" required>
-
-        <label for="examId">Exam ID:</label>
-        <input type="text" id="examId" name="E_ID" required>
-
-        <button type="submit" name="submit">View the Result</button>
-      </form>
-
-      <?php
-      if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $E_ID = $_POST['E_ID'];
-        $C_ID = $_POST['C_ID'];
-
-        // Query the database to get the result
-        $sql = "SELECT E_ID, C_ID, Result FROM attends WHERE E_ID = '$E_ID' AND C_ID = '$C_ID'";
-        $result = mysqli_query($conn, $sql);
-
-        if (mysqli_num_rows($result) > 0) {
-          $row = mysqli_fetch_assoc($result);
-          $E_ID = $row["E_ID"];
-          $C_ID = $row["C_ID"];
-          $Result = $row["Result"];
-
-          // Pass result data to JavaScript using PHP
-          echo "<script>
-                  var resultData = {
-                    eid: '" . $E_ID . "',
-                    cid: '" . $C_ID . "',
-                    result: '" . $Result . "'
-                  };
-                </script>";
-        } else {
-          echo "<script>
-                  var resultData = { error: 'No result found.' };
-                </script>";
-        }
-
-        mysqli_close($conn);
-      }
-      ?>
-
-      <!-- Popup for displaying the result -->
-      <div id="popup" class="popup">
-        <div class="popup-content">
-          <h2 id="popupTitle"></h2>
-          <p id="popupMessage"></p>
-          <button id="closePopup">Close</button>
-        </div>
+  <div class="container mt-xl mb-xl">
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+      <div class="card-header">
+        <h1 class="card-title"><i class="fas fa-chart-line"></i> Exam Results</h1>
+        <p class="card-subtitle">View your examination results</p>
       </div>
+      <div class="card-body">
+        <!-- Form -->
+        <form id="resultForm" action="" method="post">
+          <div class="form-group">
+            <label for="name" class="form-label">Employee Name</label>
+            <input type="text" id="name" name="name" class="form-control" required>
+          </div>
 
+          <div class="form-group">
+            <label for="id" class="form-label">Employee ID</label>
+            <input type="text" id="id" name="C_ID" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label for="examId" class="form-label">Exam ID</label>
+            <input type="text" id="examId" name="E_ID" class="form-control" required>
+          </div>
+
+          <button type="submit" name="submit" class="btn btn-primary" style="width: 100%;">View Result</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <?php
+  if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $E_ID = mysqli_real_escape_string($conn, $_POST['E_ID']);
+    $C_ID = mysqli_real_escape_string($conn, $_POST['C_ID']);
+
+    // Query the database to get the result
+    $sql = "SELECT E_ID, C_ID, Result FROM attends WHERE E_ID = '$E_ID' AND C_ID = '$C_ID'";
+    $result = mysqli_query($conn, $sql);
+
+    if (mysqli_num_rows($result) > 0) {
+      $row = mysqli_fetch_assoc($result);
+      $E_ID = $row["E_ID"];
+      $C_ID = $row["C_ID"];
+      $Result = $row["Result"];
+
+      // Pass result data to JavaScript using PHP
+      echo "<script>
+              var resultData = {
+                eid: '" . htmlspecialchars($E_ID) . "',
+                cid: '" . htmlspecialchars($C_ID) . "',
+                result: '" . htmlspecialchars($Result) . "'
+              };
+            </script>";
+    } else {
+      echo "<script>
+              var resultData = { error: 'No result found for the provided details.' };
+            </script>";
+    }
+  }
+  ?>
+
+  <!-- Popup for displaying the result -->
+  <div id="popup" class="popup">
+    <div class="popup-content">
+      <h2 id="popupTitle" style="margin-bottom: 1rem;"></h2>
+      <div id="popupMessage" style="margin-bottom: 1.5rem; line-height: 1.6;"></div>
+      <button id="closePopup" class="btn btn-secondary">Close</button>
     </div>
   </div>
 
   <script>
     // Check if resultData is defined (meaning the form has been submitted and PHP has passed the result)
     if (typeof resultData !== 'undefined') {
+      var popup = document.getElementById('popup');
+      var popupTitle = document.getElementById('popupTitle');
+      var popupMessage = document.getElementById('popupMessage');
+
       // Show the result in a popup
       if (!resultData.error) {
-        document.getElementById('popupTitle').innerText = 'Exam Result';
-        document.getElementById('popupMessage').innerHTML =
-          'Exam ID: ' + resultData.eid + '<br>' +
-          'Employee ID: ' + resultData.cid + '<br>' +
-          'Result: ' + resultData.result;
+        popupTitle.innerHTML = '<i class="fas fa-check-circle" style="color: var(--secondary);"></i> Exam Result';
+        popupMessage.innerHTML =
+          '<strong>Exam ID:</strong> ' + resultData.eid + '<br>' +
+          '<strong>Employee ID:</strong> ' + resultData.cid + '<br>' +
+          '<strong>Result:</strong> <span style="font-size: 1.2em; font-weight: bold; color: var(--primary);">' + resultData.result + '</span>';
       } else {
         // If no result is found
-        document.getElementById('popupTitle').innerText = 'Error';
-        document.getElementById('popupMessage').innerText = resultData.error;
+        popupTitle.innerHTML = '<i class="fas fa-exclamation-circle" style="color: var(--error);"></i> Error';
+        popupMessage.innerText = resultData.error;
       }
 
       // Show the popup
-      document.getElementById('popup').style.display = 'block';
+      popup.classList.add('show');
     }
 
     // Close button functionality
     document.getElementById('closePopup').addEventListener('click', function () {
-      document.getElementById('popup').style.display = 'none'; // Hide the popup
-      document.getElementById('resultForm').reset(); // Reset the form
+      document.getElementById('popup').classList.remove('show');
+      // Optional: Reset form or redirect
+      // document.getElementById('resultForm').reset();
     });
-
-    document.getElementById('resultForm').addEventListener('submit', function (e) {
-    e.preventDefault(); // Prevent the default form submission
-
-    // Show loader
-    document.getElementById('loader').style.display = 'block';
-
-    // Simulate a delay to mimic processing time (like querying a database)
-    setTimeout(function () {
-      // Hide the loader after delay
-      document.getElementById('loader').style.display = 'none';
-
-      if (typeof resultData !== 'undefined') {
-        // Show the result in a popup
-        if (!resultData.error) {
-          document.getElementById('popupTitle').innerText = 'Exam Result';
-          document.getElementById('popupMessage').innerHTML =
-            'Exam ID: ' + resultData.eid + '<br>' +
-            'Employee ID: ' + resultData.cid + '<br>' +
-            'Result: ' + resultData.result;
-        } else {
-          // If no result is found
-          document.getElementById('popupTitle').innerText = 'Error';
-          document.getElementById('popupMessage').innerText = resultData.error;
-        }
-
-        // Show the popup
-        document.getElementById('popup').style.display = 'block';
-      }
-
-    }, 2000); // Simulate a 2-second delay
-
-    // Close button functionality
-    document.getElementById('closePopup').addEventListener('click', function () {
-      document.getElementById('popup').style.display = 'none'; // Hide the popup
-      document.getElementById('resultForm').reset(); // Reset the form
-    });
-  });
   </script>
 <?php
     include ("../includes/footer.php");
 ?>
 </body>
-
 </html>

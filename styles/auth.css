@@ -1,17 +1,21 @@
 :root {
+  /* Use variables from theme.css where possible, or map them here */
   --surface-glass: rgba(255, 255, 255, 0.92);
   --surface-glass-hover: rgba(255, 255, 255, 0.98);
   --surface-muted: rgba(255, 255, 255, 0.65);
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --primary-500: #2563eb;
-  --primary-600: #1d4ed8;
-  --primary-700: #1e40af;
-  --error-500: #dc2626;
-  --border-color: rgba(15, 23, 42, 0.1);
-  --focus-ring: 0 0 0 4px rgba(37, 99, 235, 0.15);
-  --card-radius: 18px;
-  --transition-base: 200ms ease;
+
+  /* Map to theme.css variables */
+  --text-primary: var(--neutral-dark, #1f2937);
+  --text-secondary: var(--neutral-gray, #6b7280);
+  --primary-500: var(--primary, #1a73e8);
+  --primary-600: var(--primary-dark, #1558b0);
+  --primary-700: #0d47a1; /* Darker shade manually defined if not in theme */
+  --error-500: var(--error, #ea4335);
+
+  --border-color: var(--border-light, #e5e7eb);
+  --focus-ring: 0 0 0 4px rgba(26, 115, 232, 0.15);
+  --card-radius: var(--radius-xl, 1rem);
+  --transition-base: var(--transition-base, 200ms ease-in-out);
 }
 
 * {
@@ -26,9 +30,18 @@ body {
   align-items: center;
   justify-content: center;
   padding: 48px 24px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(
+    --font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif
+  );
   color: var(--text-primary);
-  background-color: #0f172a;
+  background-color: var(--bg-primary, #f9fafb);
   position: relative;
   overflow-x: hidden;
 }
@@ -38,11 +51,10 @@ body::before {
   position: fixed;
   inset: 0;
   background: linear-gradient(
-      135deg,
-      rgba(15, 23, 42, 0.6),
-      rgba(37, 99, 235, 0.35)
-    ),
-    url("../assets/images/auth_bg.jpg") center / cover no-repeat;
+    135deg,
+    rgba(26, 115, 232, 0.1),
+    rgba(255, 255, 255, 0.8)
+  );
   z-index: -2;
 }
 
@@ -50,11 +62,16 @@ body::after {
   content: "";
   position: fixed;
   inset: 0;
-  background: linear-gradient(
-    160deg,
-    rgba(15, 23, 42, 0.55) 0%,
-    rgba(30, 64, 175, 0.35) 100%
-  );
+  background: radial-gradient(
+      circle at top right,
+      rgba(52, 168, 83, 0.05),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      rgba(26, 115, 232, 0.05),
+      transparent 40%
+    );
   backdrop-filter: blur(3px);
   z-index: -1;
 }
