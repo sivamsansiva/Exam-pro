@@ -6,23 +6,25 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Examiner' || $_SESSION['role'] == 'Employee'){
+if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Examiner' || $_SESSION['role'] == 'Staff'){
     header("Location: ../auth/login.php");
     exit();
 }
 
 //Delete User Operation
 if(isset($_GET['deleteid'])){
-    $Sid = $_GET['deleteid'];
+    $userId = $_GET['deleteid'];
 
-    $delete = "DELETE FROM staff WHERE S_ID='$Sid';";
+    $stmt = $conn->prepare("DELETE FROM users WHERE id = ? AND role != 'Admin'");
+    $stmt->bind_param("i", $userId);
+    $result = $stmt->execute();
 
-    $result = $conn->query($delete);
-
-    if($result){
+    if($result && $stmt->affected_rows > 0){
+        $stmt->close();
         header('location:../dashboards/admin_dashboard.php');
     }else{
-        die($conn->error);
+        $stmt->close();
+        die("Error: Unable to delete user or user is an admin.");
     }
 }
 

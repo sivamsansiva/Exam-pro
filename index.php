@@ -12,8 +12,9 @@ if (!isset($_SESSION['email'])){
 
 // Get user information
 $userEmail = $_SESSION['email'];
-$userRole = $_SESSION['role'] ?? 'employee';
+$userRole = $_SESSION['role'] ?? 'staff';
 $userDepartment = $_SESSION['department'] ?? null;
+$userId = $_SESSION['user_id'] ?? null;
 
 // Fetch user's full information
 $userQuery = "SELECT * FROM users WHERE email = ?";
@@ -26,54 +27,60 @@ $userData = $userResult->fetch_assoc();
 // Fetch department exams (exams from user's department)
 $departmentExams = [];
 if ($userDepartment) {
-    $deptExamQuery = "SELECT e.*, s.F_Name, s.L_Name, s.Email as examiner_email, d.D_Name
+    $deptExamQuery = "SELECT e.id, e.code, e.name, e.description, e.duration_minutes, e.scheduled_at,
+                             u.first_name, u.last_name, u.email as examiner_email, d.name as dept_name
                       FROM exam e
-                      JOIN staff s ON e.S_ID = s.S_ID
-                      JOIN department d ON s.D_ID = d.D_ID
-                      WHERE s.D_ID = ?
-                      ORDER BY e.E_ID DESC";
+                      JOIN users u ON e.created_by = u.id
+                      JOIN department d ON e.department_id = d.id
+                      WHERE e.department_id = ?
+                      ORDER BY e.scheduled_at DESC, e.id DESC";
     $stmt = $conn->prepare($deptExamQuery);
-    $stmt->bind_param("s", $userDepartment);
+    $stmt->bind_param("i", $userDepartment);
     $stmt->execute();
     $departmentExams = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 
-// Fetch general exams (all exams or exams from other departments - simplified version)
-$generalExamQuery = "SELECT e.*, s.F_Name, s.L_Name, s.Email as examiner_email, d.D_Name
+// Fetch general exams (all exams)
+$generalExamQuery = "SELECT e.id, e.code, e.name, e.description, e.duration_minutes, e.scheduled_at,
+                            u.first_name, u.last_name, u.email as examiner_email, d.name as dept_name
                      FROM exam e
-                     JOIN staff s ON e.S_ID = s.S_ID
-                     JOIN department d ON s.D_ID = d.D_ID
-                     ORDER BY e.E_ID DESC
+                     JOIN users u ON e.created_by = u.id
+                     JOIN department d ON e.department_id = d.id
+                     ORDER BY e.scheduled_at DESC, e.id DESC
                      LIMIT 6";
 $generalExams = $conn->query($generalExamQuery)->fetch_all(MYSQLI_ASSOC);
 
-// Note: Since the database schema doesn't have a registration table,
-// we'll simulate registered and attended exams based on the attends table
-// Fetch registered exams (for now, we'll show all available exams as "available to register")
+// Fetch registered exams
 $registeredExams = [];
+if ($userId) {
+    $regQuery = "SELECT e.id, e.code, e.name, e.duration_minutes, e.scheduled_at,
+                        u.first_name, u.last_name, d.name as dept_name, r.registered_at
+                 FROM exam_registration r
+                 JOIN exam e ON r.exam_id = e.id
+                 JOIN users u ON e.created_by = u.id
+                 JOIN department d ON e.department_id = d.id
+                 WHERE r.user_id = ? AND r.status = 'registered'
+                 ORDER BY r.registered_at DESC";
+    $stmt = $conn->prepare($regQuery);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $registeredExams = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
 
-// Fetch attended exams (exams the user has completed)
+// Fetch attended exams (completed attempts)
 $attendedExams = [];
-// First, check if user exists in exam_candidate table
-$candidateCheck = "SELECT C_ID FROM exam_candidate WHERE Email = ?";
-$stmt = $conn->prepare($candidateCheck);
-$stmt->bind_param("s", $userEmail);
-$stmt->execute();
-$candidateResult = $stmt->get_result();
-
-if ($candidateResult->num_rows > 0) {
-    $candidate = $candidateResult->fetch_assoc();
-    $candidateId = $candidate['C_ID'];
-
-    $attendedQuery = "SELECT e.*, s.F_Name, s.L_Name, d.D_Name, a.Result
-                      FROM attends a
-                      JOIN exam e ON a.E_ID = e.E_ID
-                      JOIN staff s ON e.S_ID = s.S_ID
-                      JOIN department d ON s.D_ID = d.D_ID
-                      WHERE a.C_ID = ?
-                      ORDER BY a.Result DESC";
+if ($userId) {
+    $attendedQuery = "SELECT e.id, e.code, e.name, e.duration_minutes,
+                             u.first_name, u.last_name, d.name as dept_name,
+                             a.score, a.ended_at
+                      FROM exam_attempt a
+                      JOIN exam e ON a.exam_id = e.id
+                      JOIN users u ON e.created_by = u.id
+                      JOIN department d ON e.department_id = d.id
+                      WHERE a.user_id = ? AND a.completed = 1
+                      ORDER BY a.score DESC, a.ended_at DESC";
     $stmt = $conn->prepare($attendedQuery);
-    $stmt->bind_param("s", $candidateId);
+    $stmt->bind_param("i", $userId);
     $stmt->execute();
     $attendedExams = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
@@ -110,7 +117,7 @@ if ($candidateResult->num_rows > 0) {
                                 <i class="fas fa-pen-to-square"></i>
                                 Take Exam
                             </a>
-                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Employee'): ?>
+                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Staff'): ?>
                                 <a href="dashboards/user_dashboard.php" class="btn btn-secondary btn-lg">
                                     <i class="fas fa-tachometer-alt"></i>
                                     My Dashboard
@@ -189,31 +196,31 @@ if ($candidateResult->num_rows > 0) {
                     <?php foreach ($departmentExams as $exam): ?>
                     <div class="exam-card">
                         <div class="exam-card-header">
-                            <h3 class="exam-title"><?php echo htmlspecialchars($exam['E_Name']); ?></h3>
-                            <span class="badge badge-info"><?php echo htmlspecialchars($exam['D_Name']); ?></span>
+                            <h3 class="exam-title"><?php echo htmlspecialchars($exam['name']); ?></h3>
+                            <span class="badge badge-info"><?php echo htmlspecialchars($exam['dept_name']); ?></span>
                         </div>
                         <div class="exam-card-body">
                             <div class="exam-meta">
                                 <div class="exam-meta-item">
                                     <i class="fas fa-user-tie"></i>
-                                    <span><?php echo htmlspecialchars($exam['F_Name'] . ' ' . $exam['L_Name']); ?></span>
+                                    <span><?php echo htmlspecialchars($exam['first_name'] . ' ' . $exam['last_name']); ?></span>
                                 </div>
                                 <div class="exam-meta-item">
                                     <i class="fas fa-clock"></i>
-                                    <span><?php echo htmlspecialchars($exam['Duration']); ?></span>
+                                    <span><?php echo htmlspecialchars($exam['duration_minutes']); ?> min</span>
                                 </div>
                                 <div class="exam-meta-item">
                                     <i class="fas fa-hashtag"></i>
-                                    <span>ID: <?php echo htmlspecialchars($exam['E_ID']); ?></span>
+                                    <span>Code: <?php echo htmlspecialchars($exam['code']); ?></span>
                                 </div>
                             </div>
                         </div>
                         <div class="exam-card-footer">
-                            <a href="exams/registerExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-primary">
+                            <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-primary">
                                 <i class="fas fa-user-plus"></i>
                                 Register
                             </a>
-                            <a href="exams/registerExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-outline">
+                            <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-outline">
                                 <i class="fas fa-info-circle"></i>
                                 View Details
                             </a>
@@ -240,31 +247,31 @@ if ($candidateResult->num_rows > 0) {
                         <?php foreach ($generalExams as $exam): ?>
                         <div class="exam-card">
                             <div class="exam-card-header">
-                                <h3 class="exam-title"><?php echo htmlspecialchars($exam['E_Name']); ?></h3>
-                                <span class="badge badge-success"><?php echo htmlspecialchars($exam['D_Name']); ?></span>
+                                <h3 class="exam-title"><?php echo htmlspecialchars($exam['name']); ?></h3>
+                                <span class="badge badge-success"><?php echo htmlspecialchars($exam['dept_name']); ?></span>
                             </div>
                             <div class="exam-card-body">
                                 <div class="exam-meta">
                                     <div class="exam-meta-item">
                                         <i class="fas fa-user-tie"></i>
-                                        <span><?php echo htmlspecialchars($exam['F_Name'] . ' ' . $exam['L_Name']); ?></span>
+                                        <span><?php echo htmlspecialchars($exam['first_name'] . ' ' . $exam['last_name']); ?></span>
                                     </div>
                                     <div class="exam-meta-item">
                                         <i class="fas fa-clock"></i>
-                                        <span><?php echo htmlspecialchars($exam['Duration']); ?></span>
+                                        <span><?php echo htmlspecialchars($exam['duration_minutes']); ?> min</span>
                                     </div>
                                     <div class="exam-meta-item">
                                         <i class="fas fa-hashtag"></i>
-                                        <span>ID: <?php echo htmlspecialchars($exam['E_ID']); ?></span>
+                                        <span>Code: <?php echo htmlspecialchars($exam['code']); ?></span>
                                     </div>
                                 </div>
                             </div>
                             <div class="exam-card-footer">
-                                <a href="exams/registerExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-secondary">
+                                <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-secondary">
                                     <i class="fas fa-user-plus"></i>
                                     Register
                                 </a>
-                                <a href="exams/registerExam.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-outline">
+                                <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-outline">
                                     <i class="fas fa-info-circle"></i>
                                     View Details
                                 </a>
@@ -297,29 +304,29 @@ if ($candidateResult->num_rows > 0) {
                     <?php foreach ($attendedExams as $exam): ?>
                     <div class="exam-card completed">
                         <div class="exam-card-header">
-                            <h3 class="exam-title"><?php echo htmlspecialchars($exam['E_Name']); ?></h3>
+                            <h3 class="exam-title"><?php echo htmlspecialchars($exam['name']); ?></h3>
                             <span class="badge badge-success">
-                                <?php echo number_format($exam['Result'], 2); ?>%
+                                <?php echo number_format($exam['score'], 2); ?>%
                             </span>
                         </div>
                         <div class="exam-card-body">
                             <div class="exam-meta">
                                 <div class="exam-meta-item">
                                     <i class="fas fa-building"></i>
-                                    <span><?php echo htmlspecialchars($exam['D_Name']); ?></span>
+                                    <span><?php echo htmlspecialchars($exam['dept_name']); ?></span>
                                 </div>
                                 <div class="exam-meta-item">
                                     <i class="fas fa-user-tie"></i>
-                                    <span><?php echo htmlspecialchars($exam['F_Name'] . ' ' . $exam['L_Name']); ?></span>
+                                    <span><?php echo htmlspecialchars($exam['first_name'] . ' ' . $exam['last_name']); ?></span>
                                 </div>
                                 <div class="exam-meta-item">
                                     <i class="fas fa-trophy"></i>
-                                    <span><?php echo $exam['Result'] >= 75 ? 'Pass' : 'Review Required'; ?></span>
+                                    <span><?php echo $exam['score'] >= 75 ? 'Pass' : 'Review Required'; ?></span>
                                 </div>
                             </div>
                         </div>
                         <div class="exam-card-footer">
-                            <a href="exams/result.php?id=<?php echo $exam['E_ID']; ?>" class="btn btn-sm btn-primary">
+                            <a href="exams/result.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-primary">
                                 <i class="fas fa-eye"></i>
                                 View Result
                             </a>

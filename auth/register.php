@@ -10,7 +10,7 @@ $email = '';
 $department = '';
 
 $departmentOptions = [];
-$departmentQuery = $conn->query('SELECT D_ID, D_Name FROM department ORDER BY D_Name');
+$departmentQuery = $conn->query('SELECT id, name FROM department ORDER BY name');
 
 if ($departmentQuery) {
     while ($row = $departmentQuery->fetch_assoc()) {
@@ -18,7 +18,7 @@ if ($departmentQuery) {
     }
 }
 
-$validDepartments = array_column($departmentOptions, 'D_ID');
+$validDepartments = array_column($departmentOptions, 'id');
 
 if ($departmentQuery instanceof mysqli_result) {
     $departmentQuery->free();
@@ -58,13 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($checkStmt->num_rows > 0) {
                 $errors[] = 'An account already exists with that email address.';
             } else {
-                $role = 'employee';
+                $role = 'staff';
                 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-                $insertStmt = $conn->prepare('INSERT INTO users (email, password_hash, role, department, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())');
+                $insertStmt = $conn->prepare('INSERT INTO users (email, password_hash, role, department_id, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())');
 
                 if ($insertStmt) {
-                    $insertStmt->bind_param('ssss', $email, $passwordHash, $role, $department);
+                    $insertStmt->bind_param('sssi', $email, $passwordHash, $role, $department);
 
                     if ($insertStmt->execute()) {
                         $newUserId = $insertStmt->insert_id ?: $conn->insert_id;
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <select id="department" name="department" required>
                     <option value="" disabled <?php echo $department === '' ? 'selected' : ''; ?>>Select your department</option>
                     <?php foreach ($departmentOptions as $dept): ?>
-                        <option value="<?php echo htmlspecialchars($dept['D_ID']); ?>" <?php echo $department === $dept['D_ID'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($dept['D_Name']); ?></option>
+                        <option value="<?php echo htmlspecialchars($dept['id']); ?>" <?php echo $department == $dept['id'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($dept['name']); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>

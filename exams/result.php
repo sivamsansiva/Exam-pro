@@ -6,10 +6,12 @@ if (session_status() == PHP_SESSION_NONE) {
   session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['role'] == 'Examiner' || $_SESSION['role'] == 'Admin'){
+if (!isset($_SESSION['email']) || $_SESSION['role'] != 'Staff'){
   header("Location: ../auth/login.php");
   exit();
 }
+
+$userId = $_SESSION['user_id'] ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -71,18 +73,8 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['r
         <!-- Form -->
         <form id="resultForm" action="" method="post">
           <div class="form-group">
-            <label for="name" class="form-label">Employee Name</label>
-            <input type="text" id="name" name="name" class="form-control" required>
-          </div>
-
-          <div class="form-group">
-            <label for="id" class="form-label">Employee ID</label>
-            <input type="text" id="id" name="C_ID" class="form-control" required>
-          </div>
-
-          <div class="form-group">
-            <label for="examId" class="form-label">Exam ID</label>
-            <input type="text" id="examId" name="E_ID" class="form-control" required>
+            <label for="examId" class="form-label">Exam Code or Name</label>
+            <input type="text" id="examId" name="exam_search" class="form-control" placeholder="Enter exam code or name" required>
           </div>
 
           <button type="submit" name="submit" class="btn btn-primary" style="width: 100%;">View Result</button>
@@ -93,32 +85,42 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['r
 
   <?php
   if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $E_ID = mysqli_real_escape_string($conn, $_POST['E_ID']);
-    $C_ID = mysqli_real_escape_string($conn, $_POST['C_ID']);
+    $examSearch = $_POST['exam_search'] ?? '';
 
-    // Query the database to get the result
-    $sql = "SELECT E_ID, C_ID, Result FROM attends WHERE E_ID = '$E_ID' AND C_ID = '$C_ID'";
-    $result = mysqli_query($conn, $sql);
+    // Use prepared statement to get exam attempts
+    $stmt = $conn->prepare("
+      SELECT
+        e.id, e.code, e.name, e.max_score,
+        ea.attempt_no, ea.score, ea.started_at, ea.ended_at, ea.completed
+      FROM exam_attempt ea
+      INNER JOIN exam e ON ea.exam_id = e.id
+      WHERE ea.user_id = ?
+        AND (e.code LIKE ? OR e.name LIKE ?)
+        AND ea.completed = 1
+      ORDER BY ea.started_at DESC
+    ");
 
-    if (mysqli_num_rows($result) > 0) {
-      $row = mysqli_fetch_assoc($result);
-      $E_ID = $row["E_ID"];
-      $C_ID = $row["C_ID"];
-      $Result = $row["Result"];
+    $searchPattern = "%{$examSearch}%";
+    $stmt->bind_param("iss", $userId, $searchPattern, $searchPattern);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+      $attempts = [];
+      while ($row = $result->fetch_assoc()) {
+        $attempts[] = $row;
+      }
 
       // Pass result data to JavaScript using PHP
       echo "<script>
-              var resultData = {
-                eid: '" . htmlspecialchars($E_ID) . "',
-                cid: '" . htmlspecialchars($C_ID) . "',
-                result: '" . htmlspecialchars($Result) . "'
-              };
+              var resultData = " . json_encode($attempts) . ";
             </script>";
     } else {
       echo "<script>
-              var resultData = { error: 'No result found for the provided details.' };
+              var resultData = { error: 'No completed exam attempts found for the provided search.' };
             </script>";
     }
+    $stmt->close();
   }
   ?>
 
@@ -140,11 +142,25 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['r
 
       // Show the result in a popup
       if (!resultData.error) {
-        popupTitle.innerHTML = '<i class="fas fa-check-circle" style="color: var(--secondary);"></i> Exam Result';
-        popupMessage.innerHTML =
-          '<strong>Exam ID:</strong> ' + resultData.eid + '<br>' +
-          '<strong>Employee ID:</strong> ' + resultData.cid + '<br>' +
-          '<strong>Result:</strong> <span style="font-size: 1.2em; font-weight: bold; color: var(--primary);">' + resultData.result + '</span>';
+        popupTitle.innerHTML = '<i class="fas fa-check-circle" style="color: var(--secondary);"></i> Exam Results';
+
+        var resultsHTML = '';
+        resultData.forEach(function(attempt, index) {
+          var percentage = (attempt.score / attempt.max_score * 100).toFixed(2);
+          var passed = percentage >= 60 ? 'Passed' : 'Failed';
+          var statusColor = percentage >= 60 ? 'var(--secondary)' : 'var(--error)';
+
+          resultsHTML += '<div style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; text-align: left;">';
+          resultsHTML += '<strong>Exam:</strong> ' + attempt.name + ' (' + attempt.code + ')<br>';
+          resultsHTML += '<strong>Attempt:</strong> #' + attempt.attempt_no + '<br>';
+          resultsHTML += '<strong>Score:</strong> ' + attempt.score + '/' + attempt.max_score + ' (' + percentage + '%)<br>';
+          resultsHTML += '<strong>Status:</strong> <span style="color: ' + statusColor + '; font-weight: bold;">' + passed + '</span><br>';
+          resultsHTML += '<strong>Started:</strong> ' + new Date(attempt.started_at).toLocaleString() + '<br>';
+          resultsHTML += '<strong>Completed:</strong> ' + new Date(attempt.ended_at).toLocaleString();
+          resultsHTML += '</div>';
+        });
+
+        popupMessage.innerHTML = resultsHTML;
       } else {
         // If no result is found
         popupTitle.innerHTML = '<i class="fas fa-exclamation-circle" style="color: var(--error);"></i> Error';
@@ -158,8 +174,6 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['r
     // Close button functionality
     document.getElementById('closePopup').addEventListener('click', function () {
       document.getElementById('popup').classList.remove('show');
-      // Optional: Reset form or redirect
-      // document.getElementById('resultForm').reset();
     });
   </script>
 <?php

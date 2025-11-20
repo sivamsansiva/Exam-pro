@@ -13,47 +13,67 @@
     // Handle Profile Update
     $updateSuccess = false;
     if (isset($_POST['update_profile'])) {
-        $Fname = mysqli_real_escape_string($conn, $_POST["fname"]);
-        $Lname = mysqli_real_escape_string($conn, $_POST["lname"]);
-        $Email = mysqli_real_escape_string($conn, $_POST["email"]);
-        $DOB = mysqli_real_escape_string($conn, $_POST["dob"]);
+        $userId = $_SESSION['user_id'];
+        $firstName = mysqli_real_escape_string($conn, $_POST["first_name"]);
+        $lastName = mysqli_real_escape_string($conn, $_POST["last_name"]);
+        $email = mysqli_real_escape_string($conn, $_POST["email"]);
+        $dob = mysqli_real_escape_string($conn, $_POST["dob"]);
         $gender = mysqli_real_escape_string($conn, $_POST["gender"]);
         $phoneNo = mysqli_real_escape_string($conn, $_POST['phone']);
 
-        $sql2 = "UPDATE staff SET F_Name='$Fname', L_Name='$Lname', Gender='$gender', Email='$Email', DOB='$DOB' WHERE Role='Admin'";
-        $result = mysqli_query($conn, $sql2);
+        $sql2 = "UPDATE users SET first_name=?, last_name=?, gender=?, email=?, dob=?, updated_at=NOW() WHERE id=?";
+        $stmt = $conn->prepare($sql2);
+        $stmt->bind_param("sssssi", $firstName, $lastName, $gender, $email, $dob, $userId);
+        $result = $stmt->execute();
 
-        // Get Admin ID to update phone
-        $adminQuery = "SELECT S_ID FROM staff WHERE Role='Admin'";
-        $adminResult = mysqli_query($conn, $adminQuery);
-        $adminRow = mysqli_fetch_assoc($adminResult);
-        $Sid = $adminRow['S_ID'];
+        // Update phone number
+        $checkPhone = "SELECT * FROM user_phone WHERE user_id=?";
+        $stmt = $conn->prepare($checkPhone);
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $phoneResult = $stmt->get_result();
 
-        $sql3 = "UPDATE staff_phone_no SET S_phone_no='$phoneNo' WHERE S_ID='$Sid'";
-        $result3 = mysqli_query($conn, $sql3);
+        if ($phoneResult->num_rows > 0) {
+            $updatePhone = "UPDATE user_phone SET phone=? WHERE user_id=?";
+            $stmt = $conn->prepare($updatePhone);
+            $stmt->bind_param("si", $phoneNo, $userId);
+            $stmt->execute();
+        } else {
+            $insertPhone = "INSERT INTO user_phone (user_id, phone) VALUES (?, ?)";
+            $stmt = $conn->prepare($insertPhone);
+            $stmt->bind_param("is", $userId, $phoneNo);
+            $stmt->execute();
+        }
 
-        if ($result && $result3) {
+        if ($result) {
             $updateSuccess = true;
         }
     }
 
     // Fetch Admin Details
-    $sql1 = "SELECT * FROM staff WHERE Role='Admin'";
-    $result = mysqli_query($conn, $sql1);
+    $userId = $_SESSION['user_id'];
+    $sql1 = "SELECT * FROM users WHERE id=? AND role='admin'";
+    $stmt = $conn->prepare($sql1);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
     $row = $result->fetch_assoc();
-    $Sid = $row['S_ID'];
-    $Fname = $row['F_Name'];
-    $Lname = $row['L_Name'];
-    $DOB = $row['DOB'];
-    $Email = $row['Email'];
-    $gender = $row['Gender'];
-    $Age = $row['Age'];
+
+    $firstName = $row['first_name'] ?? '';
+    $lastName = $row['last_name'] ?? '';
+    $dob = $row['dob'] ?? '';
+    $email = $row['email'] ?? '';
+    $gender = $row['gender'] ?? '';
+    $nic = $row['nic'] ?? '';
 
     // Fetch Admin Phone
-    $sql1 = "SELECT * FROM staff_phone_no WHERE S_ID='$Sid'";
-    $result = mysqli_query($conn, $sql1);
-    $phoneRow = $result->fetch_assoc();
-    $phoneNo = $phoneRow['S_phone_no'];
+    $sql1 = "SELECT phone FROM user_phone WHERE user_id=? LIMIT 1";
+    $stmt = $conn->prepare($sql1);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $phoneResult = $stmt->get_result();
+    $phoneRow = $phoneResult->fetch_assoc();
+    $phoneNo = $phoneRow['phone'] ?? '';
 ?>
 
 <!DOCTYPE html>
@@ -90,22 +110,22 @@
                 <form method="post" id="profile-form">
                     <div class="form-group">
                         <label class="form-label">First Name</label>
-                        <input type="text" name="fname" class="form-control" value="<?php echo htmlspecialchars($Fname); ?>" required>
+                        <input type="text" name="first_name" class="form-control" value="<?php echo htmlspecialchars($firstName); ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Last Name</label>
-                        <input type="text" name="lname" class="form-control" value="<?php echo htmlspecialchars($Lname); ?>" required>
+                        <input type="text" name="last_name" class="form-control" value="<?php echo htmlspecialchars($lastName); ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Gender</label>
                         <div style="display: flex; gap: 1.5rem;">
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="radio" name="gender" value="Male" <?php if ($gender == "Male") echo "checked"; ?>> Male
+                                <input type="radio" name="gender" value="male" <?php if ($gender == "male") echo "checked"; ?>> Male
                             </label>
                             <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="radio" name="gender" value="Female" <?php if ($gender == "Female") echo "checked"; ?>> Female
+                                <input type="radio" name="gender" value="female" <?php if ($gender == "female") echo "checked"; ?>> Female
                             </label>
                         </div>
                     </div>
@@ -117,12 +137,12 @@
 
                     <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($Email); ?>" required>
+                        <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($email); ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Date of Birth</label>
-                        <input type="date" name="dob" class="form-control" value="<?php echo htmlspecialchars($DOB); ?>" required>
+                        <input type="date" name="dob" class="form-control" value="<?php echo htmlspecialchars($dob); ?>" required>
                     </div>
 
                     <button type="submit" name="update_profile" class="btn btn-primary">
@@ -131,7 +151,7 @@
                 </form>
             </div>
 
-            <!-- Quick Stats or Actions could go here -->
+            <!-- Quick Stats or Actions -->
             <div class="card mb-xl">
                 <div class="card-header">
                     <h2 class="card-title"><i class="fas fa-bolt"></i> Quick Actions</h2>
@@ -143,11 +163,11 @@
                     <a href="#manage-exams" class="btn btn-outline" style="justify-content: flex-start;">
                         <i class="fas fa-list"></i> Manage Exams
                     </a>
-                    <a href="#candidates" class="btn btn-outline" style="justify-content: flex-start;">
-                        <i class="fas fa-users"></i> Manage Candidates
-                    </a>
                     <a href="#staff" class="btn btn-outline" style="justify-content: flex-start;">
-                        <i class="fas fa-user-tie"></i> Manage Staff
+                        <i class="fas fa-user-tie"></i> Manage Users
+                    </a>
+                    <a href="#messages" class="btn btn-outline" style="justify-content: flex-start;">
+                        <i class="fas fa-envelope"></i> View Messages
                     </a>
                 </div>
             </div>
@@ -162,37 +182,44 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Exam ID</th>
+                            <th>Code</th>
                             <th>Exam Name</th>
-                            <th>Password</th>
-                            <th>Duration</th>
-                            <th>Uploaded by</th>
+                            <th>Department</th>
+                            <th>Duration (min)</th>
+                            <th>Created By</th>
+                            <th>Scheduled</th>
                             <th>Operations</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        $sql = "SELECT E_ID, E_Name, Q_password, Duration, S_ID FROM exam";
+                        $sql = "SELECT e.id, e.code, e.name, e.duration_minutes, e.scheduled_at, 
+                                       u.first_name, u.last_name, d.name as dept_name
+                                FROM exam e
+                                LEFT JOIN users u ON e.created_by = u.id
+                                LEFT JOIN department d ON e.department_id = d.id
+                                ORDER BY e.scheduled_at DESC";
                         $result = mysqli_query($conn, $sql);
 
                         if ($result && mysqli_num_rows($result) > 0) {
                             while ($row = mysqli_fetch_assoc($result)) {
                                 echo '<tr>
-                                      <td>' . htmlspecialchars($row['E_ID']) . '</td>
-                                      <td>' . htmlspecialchars($row['E_Name']) . '</td>
-                                      <td>' . htmlspecialchars($row['Q_password']) . '</td>
-                                      <td>' . htmlspecialchars($row['Duration']) . '</td>
-                                      <td>' . htmlspecialchars($row['S_ID']) . '</td>
+                                      <td>' . htmlspecialchars($row['code']) . '</td>
+                                      <td>' . htmlspecialchars($row['name']) . '</td>
+                                      <td>' . htmlspecialchars($row['dept_name'] ?? 'N/A') . '</td>
+                                      <td>' . htmlspecialchars($row['duration_minutes']) . '</td>
+                                      <td>' . htmlspecialchars(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')) . '</td>
+                                      <td>' . htmlspecialchars($row['scheduled_at'] ?? 'Not scheduled') . '</td>
                                       <td>
                                           <div style="display: flex; gap: 0.5rem;">
-                                              <a href="../exams/updateExam.php?updateid=' . $row['E_ID'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
-                                              <a href="../exams/deleteExam.php?deleteid=' . $row['E_ID'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this exam?\')"><i class="fas fa-trash"></i></a>
+                                              <a href="../exams/updateExam.php?updateid=' . $row['id'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                                              <a href="../exams/deleteExam.php?deleteid=' . $row['id'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this exam?\')"><i class="fas fa-trash"></i></a>
                                           </div>
                                       </td>
                                   </tr>';
                             }
                         } else {
-                            echo "<tr><td colspan='6' class='text-center'>No exams found</td></tr>";
+                            echo "<tr><td colspan='7' class='text-center'>No exams found</td></tr>";
                         }
                         ?>
                     </tbody>
@@ -200,61 +227,10 @@
             </div>
         </div>
 
-        <!-- Exam Candidates Section -->
-        <div class="card mb-xl" id="candidates">
-            <div class="card-header">
-                <h2 class="card-title"><i class="fas fa-user-graduate"></i> Exam Candidates</h2>
-            </div>
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Dept ID</th>
-                            <th>DOB</th>
-                            <th>NIC</th>
-                            <th>Email</th>
-                            <th>Gender</th>
-                            <th>Operations</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $sql = "SELECT C_ID, F_Name, L_Name, D_ID, DOB, NIC, Email, Gender FROM exam_candidate";
-                        $result = mysqli_query($conn, $sql);
-
-                        if ($result && $result->num_rows > 0) {
-                            while ($row = $result->fetch_assoc()) {
-                                echo '<tr>
-                                    <td>' . htmlspecialchars($row['C_ID']) . '</td>
-                                    <td>' . htmlspecialchars($row['F_Name'] . ' ' . $row['L_Name']) . '</td>
-                                    <td>' . htmlspecialchars($row['D_ID']) . '</td>
-                                    <td>' . htmlspecialchars($row['DOB']) . '</td>
-                                    <td>' . htmlspecialchars($row['NIC']) . '</td>
-                                    <td>' . htmlspecialchars($row['Email']) . '</td>
-                                    <td>' . htmlspecialchars($row['Gender']) . '</td>
-                                    <td>
-                                        <div style="display: flex; gap: 0.5rem;">
-                                            <a href="../users/updateCandidate.php?updatcid=' . $row['C_ID'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
-                                            <a href="../users/deleteCandidate.php?deleteid=' . $row['C_ID'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this candidate?\')"><i class="fas fa-trash"></i></a>
-                                        </div>
-                                    </td>
-                                    </tr>';
-                            }
-                        } else {
-                            echo "<tr><td colspan='8' class='text-center'>No candidates found</td></tr>";
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Staff Section -->
+        <!-- All Users Section -->
         <div class="card mb-xl" id="staff">
             <div class="card-header">
-                <h2 class="card-title"><i class="fas fa-chalkboard-teacher"></i> Staff</h2>
+                <h2 class="card-title"><i class="fas fa-users"></i> All Users</h2>
             </div>
             <div class="table-container">
                 <table class="table">
@@ -262,35 +238,41 @@
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
-                            <th>Dept ID</th>
                             <th>Email</th>
                             <th>Role</th>
+                            <th>Department</th>
+                            <th>Status</th>
                             <th>Operations</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        $sql = "SELECT S_ID, F_Name, L_Name, D_ID, Email, Role FROM staff";
+                        $sql = "SELECT u.id, u.first_name, u.last_name, u.email, u.role, u.is_active, d.name as dept_name
+                                FROM users u
+                                LEFT JOIN department d ON u.department_id = d.id
+                                ORDER BY u.role, u.first_name";
                         $result = mysqli_query($conn, $sql);
 
                         if ($result && $result->num_rows > 0) {
                             while ($row = $result->fetch_assoc()) {
+                                $statusBadge = $row['is_active'] ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-error">Inactive</span>';
                                 echo '<tr>
-                                    <td>' . htmlspecialchars($row['S_ID']) . '</td>
-                                    <td>' . htmlspecialchars($row['F_Name'] . ' ' . $row['L_Name']) . '</td>
-                                    <td>' . htmlspecialchars($row['D_ID']) . '</td>
-                                    <td>' . htmlspecialchars($row['Email']) . '</td>
-                                    <td><span class="badge badge-info">' . htmlspecialchars($row['Role']) . '</span></td>
+                                    <td>' . htmlspecialchars($row['id']) . '</td>
+                                    <td>' . htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) . '</td>
+                                    <td>' . htmlspecialchars($row['email']) . '</td>
+                                    <td><span class="badge badge-info">' . htmlspecialchars(ucfirst($row['role'])) . '</span></td>
+                                    <td>' . htmlspecialchars($row['dept_name'] ?? 'N/A') . '</td>
+                                    <td>' . $statusBadge . '</td>
                                     <td>
                                         <div style="display: flex; gap: 0.5rem;">
-                                            <a href="../users/updateStaff.php?updateid=' . $row['S_ID'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
-                                            <a href="../users/deleteStaff.php?deleteid=' . $row['S_ID'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this staff member?\')"><i class="fas fa-trash"></i></a>
+                                            <a href="../users/updateStaff.php?updateid=' . $row['id'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                                            <a href="../users/deleteStaff.php?deleteid=' . $row['id'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this user?\')"><i class="fas fa-trash"></i></a>
                                         </div>
                                     </td>
                                     </tr>';
                             }
                         } else {
-                            echo "<tr><td colspan='6' class='text-center'>No staff found</td></tr>";
+                            echo "<tr><td colspan='7' class='text-center'>No users found</td></tr>";
                         }
                         ?>
                     </tbody>
@@ -298,81 +280,51 @@
             </div>
         </div>
 
-        <!-- Complaints Section -->
-        <div class="card mb-xl" id="complaints">
+        <!-- Messages Section (Complaints, Feedback, Reports) -->
+        <div class="card mb-xl" id="messages">
             <div class="card-header">
-                <h2 class="card-title"><i class="fas fa-exclamation-circle"></i> Reports & Complaints</h2>
+                <h2 class="card-title"><i class="fas fa-envelope"></i> User Messages</h2>
             </div>
             <div class="table-container">
                 <table class="table">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Sender ID</th>
-                            <th>Date</th>
+                            <th>From</th>
+                            <th>Type</th>
                             <th>Title</th>
-                            <th>Details</th>
+                            <th>Status</th>
+                            <th>Created</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        $sql = "SELECT C_No, C_ID, C_Date, C_Title, C_Details FROM complaint";
+                        $sql = "SELECT m.id, m.type, m.title, m.body, m.status, m.created_at,
+                                       u.first_name, u.last_name, u.email
+                                FROM message m
+                                JOIN users u ON m.user_id = u.id
+                                ORDER BY m.created_at DESC
+                                LIMIT 50";
                         $result = mysqli_query($conn, $sql);
 
                         if ($result && $result->num_rows > 0) {
                             while ($row = $result->fetch_assoc()) {
+                                $statusClass = $row['status'] == 'open' ? 'error' : ($row['status'] == 'resolved' ? 'success' : 'warning');
                                 echo '<tr>
-                                    <td>' . htmlspecialchars($row['C_No']) . '</td>
-                                    <td>' . htmlspecialchars($row['C_ID']) . '</td>
-                                    <td>' . htmlspecialchars($row['C_Date']) . '</td>
-                                    <td>' . htmlspecialchars($row['C_Title']) . '</td>
-                                    <td>' . htmlspecialchars($row['C_Details']) . '</td>
+                                    <td>' . htmlspecialchars($row['id']) . '</td>
+                                    <td>' . htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) . '</td>
+                                    <td><span class="badge badge-info">' . htmlspecialchars(ucfirst($row['type'])) . '</span></td>
+                                    <td>' . htmlspecialchars($row['title'] ?? substr($row['body'], 0, 30) . '...') . '</td>
+                                    <td><span class="badge badge-' . $statusClass . '">' . htmlspecialchars(ucfirst($row['status'])) . '</span></td>
+                                    <td>' . htmlspecialchars(date('Y-m-d H:i', strtotime($row['created_at']))) . '</td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-outline">Reply</a>
+                                        <a href="#" class="btn btn-sm btn-outline">View</a>
                                     </td>
                                     </tr>';
                             }
                         } else {
-                            echo "<tr><td colspan='6' class='text-center'>No complaints found</td></tr>";
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Feedback Section -->
-        <div class="card mb-xl" id="feedbacks">
-            <div class="card-header">
-                <h2 class="card-title"><i class="fas fa-comment-dots"></i> Feedback</h2>
-            </div>
-            <div class="table-container">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Sender ID</th>
-                            <th>Date</th>
-                            <th>Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $sql = "SELECT Feedback_ID, C_ID, Date, F_Details FROM Feedback";
-                        $result = mysqli_query($conn, $sql);
-
-                        if ($result && $result->num_rows > 0) {
-                            while ($row = $result->fetch_assoc()) {
-                                echo '<tr>
-                                    <td>' . htmlspecialchars($row['Feedback_ID']) . '</td>
-                                    <td>' . htmlspecialchars($row['C_ID']) . '</td>
-                                    <td>' . htmlspecialchars($row['Date']) . '</td>
-                                    <td>' . htmlspecialchars($row['F_Details']) . '</td>
-                                    </tr>';
-                            }
-                        } else {
-                            echo "<tr><td colspan='4' class='text-center'>No feedback found</td></tr>";
+                            echo "<tr><td colspan='7' class='text-center'>No messages found</td></tr>";
                         }
                         ?>
                     </tbody>

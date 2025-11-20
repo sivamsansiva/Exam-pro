@@ -9,7 +9,7 @@ $redirectRoutes = [
     'admin' => '../index.php',
     'examiner' => '../index.php',
     'manager' => '../index.php',
-    'employee' => '../index.php',
+    'staff' => '../index.php',
 ];
 
 $errors = [];
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userId = null;
         $normalizedEmail = $email;
 
-        $stmt = $conn->prepare('SELECT id, email, password_hash, role, department FROM users WHERE email = ? LIMIT 1');
+        $stmt = $conn->prepare('SELECT id, email, password_hash, role, department_id, first_name, last_name FROM users WHERE email = ? LIMIT 1');
 
         if ($stmt) {
             $stmt->bind_param('s', $email);
@@ -46,50 +46,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($user && password_verify($password, $user['password_hash'])) {
                 $authenticated = true;
                 $role = strtolower($user['role']);
-                $department = $user['department'] ?? null;
+                $department = $user['department_id'] ?? null;
                 $userId = (int) $user['id'];
                 $normalizedEmail = $user['email'];
+                $_SESSION['first_name'] = $user['first_name'];
+                $_SESSION['last_name'] = $user['last_name'];
             } else {
-                $legacyStmt = $conn->prepare('SELECT S_ID, Email, Password, Role, D_ID FROM staff WHERE Email = ? LIMIT 1');
-
-                if ($legacyStmt) {
-                    $legacyStmt->bind_param('s', $email);
-                    $legacyStmt->execute();
-                    $legacyResult = $legacyStmt->get_result();
-                    $legacyUser = $legacyResult->fetch_assoc();
-                    $legacyStmt->close();
-
-                    if ($legacyUser && hash_equals((string) $legacyUser['Password'], (string) $password)) {
-                        $role = strtolower($legacyUser['Role'] ?? 'employee');
-                        $department = $legacyUser['D_ID'] ?? null;
-                        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-
-                        $migrateStmt = $conn->prepare('INSERT INTO users (email, password_hash, role, department, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), role = VALUES(role), department = VALUES(department), updated_at = NOW()');
-
-                        if ($migrateStmt) {
-                            $migrateStmt->bind_param('ssss', $legacyUser['Email'], $passwordHash, $role, $department);
-                            $migrateStmt->execute();
-                            $migrateStmt->close();
-
-                            $fetchStmt = $conn->prepare('SELECT id, email, role, department FROM users WHERE email = ? LIMIT 1');
-
-                            if ($fetchStmt) {
-                                $fetchStmt->bind_param('s', $legacyUser['Email']);
-                                $fetchStmt->execute();
-                                $fetched = $fetchStmt->get_result()->fetch_assoc();
-                                $fetchStmt->close();
-
-                                if ($fetched) {
-                                    $authenticated = true;
-                                    $role = strtolower($fetched['role']);
-                                    $department = $fetched['department'] ?? $department;
-                                    $userId = (int) $fetched['id'];
-                                    $normalizedEmail = $fetched['email'];
-                                }
-                            }
-                        }
-                    }
-                }
+                // Legacy authentication removed - all users must be in users table
+                $authenticated = false;
             }
         } else {
             $errors[] = 'Unable to process your request right now. Please try again later.';
@@ -105,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['department'] = $department;
             }
 
-            $target = $redirectRoutes[$role] ?? $redirectRoutes['employee'];
+            $target = $redirectRoutes[$role] ?? $redirectRoutes['staff'];
             header('Location: ' . $target);
 
             exit;
@@ -174,3 +138,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script src="../scripts/auth.js" defer></script>
 </body>
 </html>
+

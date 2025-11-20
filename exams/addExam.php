@@ -5,44 +5,54 @@
         session_start();
     }
 
-    if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Manager' || $_SESSION['role'] == 'Employee'){
+    if (!isset($_SESSION['email']) || ($_SESSION['role'] != 'Manager' && $_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Examiner')){
         header("Location: ../auth/login.php");
         exit();
     }
 
-    // Database content
+    $message = "";
+    $error = "";
 
    if($_SERVER["REQUEST_METHOD"] == "POST"){
-        $exam_id = $_POST["exam_id"];
-        $ename = $_POST["ename"];
-        $qpassword = $_POST["qpassword"];
-        $Duration = $_POST["duration"];
-        $sid = $_POST["sid"];
+        $code = mysqli_real_escape_string($conn, $_POST["code"]);
+        $name = mysqli_real_escape_string($conn, $_POST["name"]);
+        $description = mysqli_real_escape_string($conn, $_POST["description"]);
+        $durationMinutes = (int)$_POST["duration"];
+        $departmentId = (int)$_POST["department_id"];
+        $quizPassword = $_POST["quiz_password"];
+        $scheduledAt = $_POST["scheduled_at"];
+        $totalQuestions = (int)$_POST["total_questions"];
+        $maxScore = (float)$_POST["max_score"];
+        
+        $createdBy = $_SESSION['user_id'];
+        $quizPasswordHash = password_hash($quizPassword, PASSWORD_DEFAULT);
 
+        $sql = "INSERT INTO exam (code, name, description, department_id, created_by, quiz_password_hash, 
+                                  duration_minutes, scheduled_at, total_questions, max_score, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-   global $conn;
-   $message = "";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssiisissd", $code, $name, $description, $departmentId, $createdBy, 
+                          $quizPasswordHash, $durationMinutes, $scheduledAt, $totalQuestions, $maxScore);
 
-   $sql = "INSERT INTO exam (E_ID,E_Name,Q_password,Duration,S_ID)
-           VALUES ('$exam_id','$ename','$qpassword','$Duration','$sid')";
-
-    if($conn->query($sql) === TRUE){
-        // echo "New Exam added Sucessfully";
-        echo '<script>alert("New Exam added Sucessfully");</script>';
-
-        if ($_SESSION['Role'] == 'Manager') {
-            echo '<script>window.location.href = "../dashboards/manager_dashboard.php";</script>';
+        if($stmt->execute()){
+            $message = "New Exam added successfully!";
+            
+            // Redirect based on role
+            if ($_SESSION['role'] == 'Manager') {
+                echo '<script>alert("' . $message . '"); window.location.href = "../dashboards/manager_dashboard.php";</script>';
+            }
+            elseif ($_SESSION['role'] == 'Admin') {
+                echo '<script>alert("' . $message . '"); window.location.href = "../dashboards/admin_dashboard.php";</script>';
+            }
+            elseif  ($_SESSION['role'] == 'Examiner') {
+                echo '<script>alert("' . $message . '"); window.location.href = "../dashboards/examiner_dashboard.php";</script>';
+            }
+            exit;
         }
-        elseif ($_SESSION['Role'] == 'Admin') {
-            echo '<script>window.location.href = "../dashboards/admin_dashboard.php";</script>';
+        else{
+            $error = "Error adding exam: " . $conn->error;
         }
-        elseif  ($_SESSION['Role'] == 'Examiner') {
-            echo '<script>window.location.href = "../dashboards/examiner_dashboard.php";</script>';
-        }
-    }
-    else{
-        echo "Error".$sql ."<br>" . $conn->error;
-    }
     }
 ?>
 <!DOCTYPE html>
@@ -57,76 +67,97 @@
 <body>
 
     <!-- Header -->
-    <?php
-        include ("../includes/header.php");
-    ?>
+    <?php include ("../includes/header.php"); ?>
 
     <!-- Add Exam Content -->
     <div class="container mt-xl mb-xl">
-        <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card" style="max-width: 700px; margin: 0 auto;">
             <div class="card-header">
                 <h1 class="card-title"><i class="fas fa-plus-circle"></i> Add Exam</h1>
                 <p class="card-subtitle">Create a new examination</p>
             </div>
             <div class="card-body">
+                <?php if ($error): ?>
+                    <div class="alert alert-error mb-lg">
+                        <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?>
+                    </div>
+                <?php endif; ?>
+
                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
 
                     <div class="form-group">
-                        <label for="eid" class="form-label">Exam ID</label>
-                        <input type="text" id="eid" name="exam_id" class="form-control" required placeholder="Enter Exam ID">
+                        <label for="code" class="form-label">Exam Code</label>
+                        <input type="text" id="code" name="code" class="form-control" required placeholder="e.g., IT101">
                     </div>
 
                     <div class="form-group">
-                        <label for="ename" class="form-label">Exam Name</label>
-                        <input type="text" id="ename" name="ename" class="form-control" required placeholder="Enter Exam Name">
+                        <label for="name" class="form-label">Exam Name</label>
+                        <input type="text" id="name" name="name" class="form-control" required placeholder="Enter Exam Name">
                     </div>
 
                     <div class="form-group">
-                        <label for="qpassword" class="form-label">Quiz Password</label>
-                        <input type="text" id="qpassword" name="qpassword" class="form-control" required placeholder="Enter Quiz Password">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" name="description" class="form-control" rows="3" placeholder="Enter exam description"></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="duration" class="form-label">Exam Duration (HH:MM:SS)</label>
-                        <input type="text" name="duration" id="duration" class="form-control" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" placeholder="00:00:00" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="sid" class="form-label">Staff ID</label>
+                        <label for="department_id" class="form-label">Department</label>
                         <?php
-                            // Select exams from database
-                            $sql= "SELECT S_ID from staff";
+                            $sql = "SELECT id, name FROM department ORDER BY name";
                             $result = $conn->query($sql);
-                            if($result->num_rows > 0){
+                            if($result && $result->num_rows > 0){
                         ?>
-                            <select name="sid" id="sid" class="form-control" required>
-                            <option value="" disabled selected>Select Staff ID</option>
-
+                            <select name="department_id" id="department_id" class="form-control" required>
+                                <option value="" disabled selected>Select Department</option>
+                                <?php
+                                    while ($row = $result->fetch_assoc()) {
+                                        echo "<option value=\"" . htmlspecialchars($row['id']) . "\">" . htmlspecialchars($row['name']) . "</option>";
+                                    }
+                                ?>
+                            </select>
                         <?php
-                            while ($row = $result->fetch_assoc()) {
-                                $sid = $row['S_ID'];
-                                echo "<option value=\"" . htmlspecialchars($sid) . "\">" . htmlspecialchars($sid) . "</option>";
-                            }
-                        ?>
-                        </select>
-                        <?php
-                            }
-                            else{
-                            echo "<p class='text-error'>No Staff ID Found.</p>";
+                            } else {
+                                echo "<p class='text-error'>No departments found.</p>";
                             }
                         ?>
                     </div>
 
-                    <button type="submit" name="submit" class="btn btn-primary" style="width: 100%;">Add Exam</button>
+                    <div class="form-group">
+                        <label for="quiz_password" class="form-label">Quiz Password</label>
+                        <input type="text" id="quiz_password" name="quiz_password" class="form-control" required placeholder="Enter Quiz Password">
+                        <small class="field-hint">Candidates will need this password to start the exam</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration" class="form-label">Duration (minutes)</label>
+                        <input type="number" name="duration" id="duration" class="form-control" min="1" max="300" value="60" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="scheduled_at" class="form-label">Scheduled Date & Time</label>
+                        <input type="datetime-local" id="scheduled_at" name="scheduled_at" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="total_questions" class="form-label">Total Questions</label>
+                        <input type="number" id="total_questions" name="total_questions" class="form-control" min="1" value="10" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="max_score" class="form-label">Maximum Score</label>
+                        <input type="number" step="0.01" id="max_score" name="max_score" class="form-control" value="100.00" required>
+                    </div>
+
+                    <button type="submit" name="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-plus"></i> Add Exam
+                    </button>
                 </form>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <?php
-        include ("../includes/footer.php");
-    ?>
+    <?php include ("../includes/footer.php"); ?>
 
 </body>
 </html>

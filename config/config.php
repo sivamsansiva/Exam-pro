@@ -4,7 +4,7 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $servername = 'localhost';
 $username = 'root';
 $password = '';
-$database = 'exam_system';
+$database = 'exampro';
 $port = '3308';
 
 $conn = new mysqli($servername, $username, $password, $database, $port);

@@ -5,34 +5,31 @@
     session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
-    // echo '<script>alert("you do not have to do that here!!")</script>';
+if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff'){
     header("Location: ../auth/login.php");
     exit();
 }
     // Database content
 
    if($_SERVER["REQUEST_METHOD"] == "POST"){
-         $fid = $_POST["feedback_id"];
-         $cid = $_POST["cid"];
-         $date = $_POST["date"];
-         $Fdetails = $_POST["details"];
-
+         $userId = $_SESSION['user_id'];
+         $messageContent = $_POST["message_content"];
+         $messageType = 'feedback';
+         $status = 'open';
 
    global $conn;
-   $message = "";
 
-   $sql = "INSERT INTO feedback (Feedback_ID,C_ID,Date,F_Details)
-           VALUES ('$fid','$cid','$date','$Fdetails')";
+   $stmt = $conn->prepare("INSERT INTO message (user_id, type, content, status, created_at) VALUES (?, ?, ?, ?, NOW())");
+   $stmt->bind_param("isss", $userId, $messageType, $messageContent, $status);
 
-    if($conn->query($sql) === TRUE){
-        // echo "New Exam added Sucessfully";
-        echo '<script>alert("feedback added Sucessfully");</script>';
+    if($stmt->execute()){
+        $stmt->close();
+        echo '<script>alert("Feedback submitted successfully!");</script>';
         echo '<script>window.location.href = "../index.php";</script>';
-
     }
     else{
-        echo "Error".$sql ."<br>" . $conn->error;
+        $stmt->close();
+        echo "Error: Unable to submit feedback.";
     }
     }
 ?>
@@ -59,27 +56,12 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
             <div class="card-body">
                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                     <div class="form-group">
-                        <label for="feedback_id" class="form-label">Feedback ID:</label>
-                        <input type="text" id="feedback_id" name="feedback_id" class="form-control" required placeholder="Enter Feedback ID">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="cid" class="form-label">Employee ID:</label>
-                        <input type="text" id="cid" name="cid" class="form-control" required placeholder="Enter Employee ID">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="date" class="form-label">Date:</label>
-                        <input type="date" id="date" name="date" class="form-control" required value="<?php echo date('Y-m-d');?>" readonly>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="details" class="form-label">Details:</label>
-                        <textarea id="details" name="details" rows="5" class="form-control" placeholder="Enter your feedback details here..." required></textarea>
+                        <label for="message_content" class="form-label">Your Feedback:</label>
+                        <textarea id="message_content" name="message_content" rows="8" class="form-control" placeholder="Enter your feedback or suggestions here..." required></textarea>
                     </div>
 
                     <div class="text-center">
-                        <input type="submit" name="submit" value="Add Feedback" class="btn btn-primary btn-lg" style="width: 100%;">
+                        <input type="submit" name="submit" value="Submit Feedback" class="btn btn-primary btn-lg" style="width: 100%;">
                     </div>
                 </form>
             </div>

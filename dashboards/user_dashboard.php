@@ -1,5 +1,5 @@
 <?php
-// User Dashboard - Enhanced for User Module
+// User Dashboard
 include("../config/config.php");
 
 if (session_status() == PHP_SESSION_NONE) {
@@ -11,68 +11,93 @@ if (!isset($_SESSION['email'])) {
     exit();
 }
 
+$userId = $_SESSION['user_id'];
 $email = $_SESSION['email'];
-$query = "SELECT C_ID,F_Name, L_Name, D_ID, DOB, NIC, Email, Age, Gender FROM exam_candidate WHERE Email = '$email'";
-$result = mysqli_query($conn, $query);
 
-if ($result && mysqli_num_rows($result) > 0) {
-    $user_data = mysqli_fetch_assoc($result);
-    $user_id = $user_data['C_ID'];
-    $_SESSION['C_ID'] = $user_id;
+// Fetch user information
+$query = "SELECT id, first_name, last_name, email, department_id, dob, nic, gender FROM users WHERE id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result && $result->num_rows > 0) {
+    $user_data = $result->fetch_assoc();
 } else {
-    echo "User not found in candidate database.";
+    echo "User not found.";
     exit();
 }
 
-// Fetch candidate phone number
-$sql = "SELECT * FROM exam_candidate_phone_no WHERE C_ID= '$user_id'";
-$result1 = mysqli_query($conn, $sql);
-$user_data1 = mysqli_fetch_assoc($result1);
+// Fetch user phone number
+$sql = "SELECT phone FROM user_phone WHERE user_id = ? LIMIT 1";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$result1 = $stmt->get_result();
+$user_data1 = $result1->fetch_assoc();
 
 $updateSuccess = false;
 $updateError = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $Fname = mysqli_real_escape_string($conn, $_POST["F_Name"]);
-    $Lname = mysqli_real_escape_string($conn, $_POST["L_Name"]);
-    $Department_ID = mysqli_real_escape_string($conn, $_POST["D_ID"]);
-    $Email = mysqli_real_escape_string($conn, $_POST["Email"]);
-    $DOB = mysqli_real_escape_string($conn, $_POST["DOB"]);
-    $NIC = mysqli_real_escape_string($conn, $_POST["NIC"]);
-    $Phone_no = mysqli_real_escape_string($conn, $_POST["phone"]);
+    $firstName = mysqli_real_escape_string($conn, $_POST["first_name"]);
+    $lastName = mysqli_real_escape_string($conn, $_POST["last_name"]);
+    $departmentId = (int)$_POST["department_id"];
+    $email = mysqli_real_escape_string($conn, $_POST["email"]);
+    $dob = mysqli_real_escape_string($conn, $_POST["dob"]);
+    $nic = mysqli_real_escape_string($conn, $_POST["nic"]);
+    $phoneNo = mysqli_real_escape_string($conn, $_POST["phone"]);
 
-    // Update candidate information
-    $updateQuery = "UPDATE exam_candidate SET
-        F_Name='$Fname',
-        L_Name='$Lname',
-        Email='$Email',
-        DOB='$DOB',
-        NIC='$NIC',
-        D_ID='$Department_ID'
-        WHERE C_ID='$user_id'";
+    // Update user information
+    $updateQuery = "UPDATE users SET
+        first_name=?,
+        last_name=?,
+        email=?,
+        dob=?,
+        nic=?,
+        department_id=?,
+        updated_at=NOW()
+        WHERE id=?";
 
-    // Execute update query
-    if (mysqli_query($conn, $updateQuery)) {
-        // Update phone number separately
-        $checkPhone = "SELECT * FROM exam_candidate_phone_no WHERE C_ID='$user_id'";
-        $checkResult = mysqli_query($conn, $checkPhone);
-        if (mysqli_num_rows($checkResult) > 0) {
-            $updatePhoneQuery = "UPDATE exam_candidate_phone_no SET Phone_no='$Phone_no' WHERE C_ID='$user_id'";
-            mysqli_query($conn, $updatePhoneQuery);
+    $stmt = $conn->prepare($updateQuery);
+    $stmt->bind_param("ssssiii", $firstName, $lastName, $email, $dob, $nic, $departmentId, $userId);
+
+    if ($stmt->execute()) {
+        // Update phone number
+        $checkPhone = "SELECT * FROM user_phone WHERE user_id=?";
+        $stmt = $conn->prepare($checkPhone);
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $checkResult = $stmt->get_result();
+        
+        if ($checkResult->num_rows > 0) {
+            $updatePhoneQuery = "UPDATE user_phone SET phone=? WHERE user_id=?";
+            $stmt = $conn->prepare($updatePhoneQuery);
+            $stmt->bind_param("si", $phoneNo, $userId);
+            $stmt->execute();
         } else {
-            $insertPhoneQuery = "INSERT INTO exam_candidate_phone_no (C_ID, Phone_no) VALUES ('$user_id', '$Phone_no')";
-            mysqli_query($conn, $insertPhoneQuery);
+            $insertPhoneQuery = "INSERT INTO user_phone (user_id, phone) VALUES (?, ?)";
+            $stmt = $conn->prepare($insertPhoneQuery);
+            $stmt->bind_param("is", $userId, $phoneNo);
+            $stmt->execute();
         }
 
         $updateSuccess = true;
         // Refresh data
-        $result = mysqli_query($conn, $query);
-        $user_data = mysqli_fetch_assoc($result);
-        $result1 = mysqli_query($conn, $sql);
-        $user_data1 = mysqli_fetch_assoc($result1);
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user_data = $result->fetch_assoc();
+        
+        $stmt = $conn->prepare("SELECT phone FROM user_phone WHERE user_id = ? LIMIT 1");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result1 = $stmt->get_result();
+        $user_data1 = $result1->fetch_assoc();
     }
     else {
-        $updateError = "Error updating profile: " . mysqli_error($conn);
+        $updateError = "Error updating profile: " . $conn->error;
     }
 }
 ?>
@@ -93,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="container mt-xl">
         <div class="mb-xl text-center">
-            <h1>Hello, <span id="greetingName"><?php echo htmlspecialchars($user_data['F_Name'] . ' ' . $user_data['L_Name']); ?></span>!</h1>
+            <h1>Hello, <span id="greetingName"><?php echo htmlspecialchars($user_data['first_name'] . ' ' . $user_data['last_name']); ?></span>!</h1>
             <p>Welcome to your dashboard.</p>
         </div>
 
@@ -118,50 +143,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form id="profileForm" action="user_dashboard.php" method="POST" onsubmit="return validateForm();">
                     <div class="form-group">
                         <label class="form-label">First Name</label>
-                        <input type="text" name="F_Name" class="form-control" value="<?php echo htmlspecialchars($user_data['F_Name']); ?>" required>
+                        <input type="text" name="first_name" class="form-control" value="<?php echo htmlspecialchars($user_data['first_name']); ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Last Name</label>
-                        <input type="text" name="L_Name" class="form-control" value="<?php echo htmlspecialchars($user_data['L_Name']); ?>" required>
+                        <input type="text" name="last_name" class="form-control" value="<?php echo htmlspecialchars($user_data['last_name']); ?>" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Candidate ID</label>
-                        <input type="text" name="C_ID" class="form-control" value="<?php echo htmlspecialchars($user_data['C_ID']); ?>" readonly style="background-color: #f0f0f0;">
+                        <label class="form-label">User ID</label>
+                        <input type="text" class="form-control" value="<?php echo htmlspecialchars($user_data['id']); ?>" readonly style="background-color: #f0f0f0;">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Department ID</label>
-                        <input type="text" name="D_ID" class="form-control" value="<?php echo htmlspecialchars($user_data['D_ID']); ?>" required>
+                        <label class="form-label">Department</label>
+                        <?php
+                            $deptSql = "SELECT id, name FROM department ORDER BY name";
+                            $deptResult = $conn->query($deptSql);
+                            if($deptResult && $deptResult->num_rows > 0){
+                        ?>
+                        <select name="department_id" class="form-control" required>
+                            <option value="">Select Department</option>
+                            <?php
+                                while ($dept = $deptResult->fetch_assoc()) {
+                                    $selected = ($user_data['department_id'] == $dept['id']) ? 'selected' : '';
+                                    echo "<option value=\"" . htmlspecialchars($dept['id']) . "\" $selected>" . htmlspecialchars($dept['name']) . "</option>";
+                                }
+                            ?>
+                        </select>
+                        <?php
+                            } else {
+                                echo "<input type='text' class='form-control' value='No departments' readonly>";
+                            }
+                        ?>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Date of Birth</label>
-                        <input type="date" name="DOB" class="form-control" value="<?php echo htmlspecialchars($user_data['DOB']); ?>" required>
+                        <input type="date" name="dob" class="form-control" value="<?php echo htmlspecialchars($user_data['dob']); ?>" required>
                         <span class="text-error" id="dobError"></span>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">NIC</label>
-                        <input type="text" name="NIC" class="form-control" value="<?php echo htmlspecialchars($user_data['NIC']); ?>" required>
+                        <input type="text" name="nic" class="form-control" value="<?php echo htmlspecialchars($user_data['nic']); ?>" required>
                         <span class="text-error" id="nicError"></span>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" name="Email" class="form-control" value="<?php echo htmlspecialchars($user_data['Email']); ?>" required>
+                        <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user_data['email']); ?>" required>
                         <span class="text-error" id="emailError"></span>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Gender</label>
-                        <input type="text" name="Gender" class="form-control" value="<?php echo htmlspecialchars($user_data['Gender']); ?>" readonly style="background-color: #f0f0f0;">
+                        <div style="display: flex; gap: 1.5rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" name="gender" value="male" <?php if ($user_data['gender'] == "male") echo "checked"; ?> disabled> Male
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" name="gender" value="female" <?php if ($user_data['gender'] == "female") echo "checked"; ?> disabled> Female
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" name="gender" value="other" <?php if ($user_data['gender'] == "other") echo "checked"; ?> disabled> Other
+                            </label>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Mobile Number</label>
-                        <input type="tel" id="phone" name="phone" class="form-control" pattern="[0-9]{10}" placeholder="07XXXXXXXX" value="<?php echo htmlspecialchars($user_data1['Phone_no'] ?? ''); ?>" required>
+                        <input type="tel" id="phone" name="phone" class="form-control" pattern="[0-9]{10}" placeholder="07XXXXXXXX" value="<?php echo htmlspecialchars($user_data1['phone'] ?? ''); ?>" required>
                     </div>
 
                     <button type="submit" class="btn btn-primary" style="width: 100%;">
@@ -179,30 +232,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Exam ID</th>
+                                <th>Exam Code</th>
                                 <th>Exam Name</th>
-                                <th>Result</th>
+                                <th>Score</th>
+                                <th>Date</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                            $sql = "SELECT exam.E_ID, exam.E_Name, attends.Result
-                                    FROM exam
-                                    JOIN attends ON exam.E_ID = attends.E_ID
-                                    WHERE attends.C_ID = '" . $user_data['C_ID'] . "'";
+                            $sql = "SELECT e.code, e.name, a.score, a.ended_at
+                                    FROM exam_attempt a
+                                    JOIN exam e ON a.exam_id = e.id
+                                    WHERE a.user_id = ? AND a.completed = 1
+                                    ORDER BY a.ended_at DESC";
 
-                            $result = mysqli_query($conn, $sql);
+                            $stmt = $conn->prepare($sql);
+                            $stmt->bind_param("i", $userId);
+                            $stmt->execute();
+                            $result = $stmt->get_result();
 
-                            if ($result && mysqli_num_rows($result) > 0) {
-                                while ($row = mysqli_fetch_assoc($result)) {
+                            if ($result && $result->num_rows > 0) {
+                                while ($row = $result->fetch_assoc()) {
+                                    $scoreClass = $row['score'] >= 75 ? 'success' : 'warning';
                                     echo '<tr>
-                                          <td>' . htmlspecialchars($row['E_ID']) . '</td>
-                                          <td>' . htmlspecialchars($row['E_Name']) . '</td>
-                                          <td><span class="badge badge-primary">' . htmlspecialchars($row['Result']) . '</span></td>
+                                          <td>' . htmlspecialchars($row['code']) . '</td>
+                                          <td>' . htmlspecialchars($row['name']) . '</td>
+                                          <td><span class="badge badge-' . $scoreClass . '">' . number_format($row['score'], 2) . '%</span></td>
+                                          <td>' . htmlspecialchars(date('Y-m-d H:i', strtotime($row['ended_at']))) . '</td>
                                       </tr>';
                                 }
                             } else {
-                                echo "<tr><td colspan='3' class='text-center'>No exam results found</td></tr>";
+                                echo "<tr><td colspan='4' class='text-center'>No exam results found</td></tr>";
                             }
                             ?>
                         </tbody>
@@ -221,9 +281,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script>
         function validateForm() {
-            let dob = document.forms["profileForm"]["DOB"].value;
-            let nic = document.forms["profileForm"]["NIC"].value;
-            let email = document.forms["profileForm"]["Email"].value;
+            let dob = document.forms["profileForm"]["dob"].value;
+            let nic = document.forms["profileForm"]["nic"].value;
+            let email = document.forms["profileForm"]["email"].value;
 
             let dobError = document.getElementById("dobError");
             let nicError = document.getElementById("nicError");
@@ -239,14 +299,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Validate Date of Birth
             const dobDate = new Date(dob);
             const today = new Date();
-            const maxDOB = new Date();
-            maxDOB.setFullYear(today.getFullYear() - 18); // Changed to 18 for general usage
 
             if (dobDate > today) {
                 dobError.textContent = "Date of Birth cannot be in the future.";
                 isValid = false;
             }
-            // Removed strict 21 age limit, kept future check.
 
             // Validate NIC
             let nicPattern = /^[0-9]{9}[Vv]$|^[0-9]{12}$/;
@@ -266,16 +323,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         function updateGreeting() {
-            var firstName = document.querySelector('input[name="F_Name"]').value;
-            var lastName = document.querySelector('input[name="L_Name"]').value;
+            var firstName = document.querySelector('input[name="first_name"]').value;
+            var lastName = document.querySelector('input[name="last_name"]').value;
             var greetingName = document.getElementById("greetingName");
 
             greetingName.textContent = firstName + " " + lastName;
         }
 
         // Attach event listeners
-        document.querySelector('input[name="F_Name"]').addEventListener("input", updateGreeting);
-        document.querySelector('input[name="L_Name"]').addEventListener("input", updateGreeting);
+        document.querySelector('input[name="first_name"]').addEventListener("input", updateGreeting);
+        document.querySelector('input[name="last_name"]').addEventListener("input", updateGreeting);
     </script>
 </body>
 </html>

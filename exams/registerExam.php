@@ -1,28 +1,29 @@
 <?php
-
     include('../config/config.php');
-    // session_start();
 
     if (session_status() == PHP_SESSION_NONE) {
         session_start();
     }
 
-    if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Employee'){
+    if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff'){
         header("Location: ../auth/login.php");
         exit();
     }
 
+    $userId = $_SESSION['user_id'] ?? null;
+
     // Get exam details if ID is provided
     $examDetails = null;
-    $selectedExamId = isset($_GET['id']) ? $_GET['id'] : null;
+    $selectedExamId = isset($_GET['id']) ? (int)$_GET['id'] : null;
     if ($selectedExamId) {
-        $examQuery = "SELECT e.*, s.F_Name, s.L_Name, d.D_Name
+        $examQuery = "SELECT e.id, e.code, e.name, e.description, e.duration_minutes, e.scheduled_at, e.total_questions, e.max_score,
+                             u.first_name, u.last_name, d.name as dept_name
                       FROM exam e
-                      JOIN staff s ON e.S_ID = s.S_ID
-                      JOIN department d ON s.D_ID = d.D_ID
-                      WHERE e.E_ID = ?";
+                      JOIN users u ON e.created_by = u.id
+                      JOIN department d ON e.department_id = d.id
+                      WHERE e.id = ?";
         $stmt = $conn->prepare($examQuery);
-        $stmt->bind_param("s", $selectedExamId);
+        $stmt->bind_param("i", $selectedExamId);
         $stmt->execute();
         $examDetails = $stmt->get_result()->fetch_assoc();
     }
@@ -31,44 +32,49 @@
     $message = "";
     $messageType = "";
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $employee_id = mysqli_real_escape_string($conn, $_POST['employee-id']);
-        $email = mysqli_real_escape_string($conn, $_POST['email']);
-        $exam_name = mysqli_real_escape_string($conn, $_POST['exam']);
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && $userId) {
+        $examId = (int)$_POST['exam_id'];
 
-        // Get exam ID from exam name
-        $exam_query = "SELECT E_ID FROM exam WHERE E_Name = '$exam_name'";
-        $exam_result = $conn->query($exam_query);
+        // Check if already registered
+        $check_query = "SELECT * FROM exam_registration WHERE exam_id = ? AND user_id = ?";
+        $stmt = $conn->prepare($check_query);
+        $stmt->bind_param("ii", $examId, $userId);
+        $stmt->execute();
+        $check_result = $stmt->get_result();
 
-        if ($exam_result && $exam_result->num_rows > 0) {
-            $exam_row = $exam_result->fetch_assoc();
-            $exam_id = $exam_row['E_ID'];
-
-            // Check if already registered
-            $check_query = "SELECT * FROM attends WHERE E_ID = '$exam_id' AND C_ID = '$employee_id'";
-            $check_result = $conn->query($check_query);
-
-            if ($check_result && $check_result->num_rows > 0) {
+        if ($check_result && $check_result->num_rows > 0) {
+            $registration = $check_result->fetch_assoc();
+            if ($registration['status'] == 'registered') {
                 $message = "You are already registered for this exam!";
                 $messageType = "warning";
             } else {
-                // Register for exam (insert with Result as 0.00 initially)
-                $register_query = "INSERT INTO attends (E_ID, C_ID, Result) VALUES ('$exam_id', '$employee_id', 0.00)";
-
-                if ($conn->query($register_query)) {
-                    $message = "Successfully registered for exam: " . htmlspecialchars($exam_name);
+                // Update cancelled to registered
+                $update_query = "UPDATE exam_registration SET status = 'registered', registered_at = NOW() WHERE exam_id = ? AND user_id = ?";
+                $stmt = $conn->prepare($update_query);
+                $stmt->bind_param("ii", $examId, $userId);
+                if ($stmt->execute()) {
+                    $message = "Successfully re-registered for the exam!";
                     $messageType = "success";
                 } else {
-                    $message = "Error registering for exam: " . $conn->error;
+                    $message = "Error re-registering for exam: " . $conn->error;
                     $messageType = "error";
                 }
             }
         } else {
-            $message = "Selected exam not found!";
-            $messageType = "error";
+            // Register for exam
+            $register_query = "INSERT INTO exam_registration (exam_id, user_id, registered_at, status) VALUES (?, ?, NOW(), 'registered')";
+            $stmt = $conn->prepare($register_query);
+            $stmt->bind_param("ii", $examId, $userId);
+
+            if ($stmt->execute()) {
+                $message = "Successfully registered for the exam!";
+                $messageType = "success";
+            } else {
+                $message = "Error registering for exam: " . $conn->error;
+                $messageType = "error";
+            }
         }
     }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -82,9 +88,7 @@
 <body>
 
     <!-- Header -->
-    <?php
-        include ("../includes/header.php");
-    ?>
+    <?php include ("../includes/header.php"); ?>
 
     <!-- Exam registration container -->
     <div class="container mt-xl mb-xl">
@@ -99,27 +103,31 @@
                     <?php if ($examDetails): ?>
                         <div class="form-group">
                             <label class="form-label"><i class="fas fa-file-alt"></i> Exam Name</label>
-                            <div class="form-control" readonly><?php echo htmlspecialchars($examDetails['E_Name']); ?></div>
+                            <div class="form-control" style="background-color: #f0f0f0;"><?php echo htmlspecialchars($examDetails['name']); ?></div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label"><i class="fas fa-hashtag"></i> Exam ID</label>
-                            <div class="form-control" readonly><?php echo htmlspecialchars($examDetails['E_ID']); ?></div>
+                            <label class="form-label"><i class="fas fa-hashtag"></i> Exam Code</label>
+                            <div class="form-control" style="background-color: #f0f0f0;"><?php echo htmlspecialchars($examDetails['code']); ?></div>
                         </div>
                         <div class="form-group">
                             <label class="form-label"><i class="fas fa-clock"></i> Duration</label>
-                            <div class="form-control" readonly><?php echo htmlspecialchars($examDetails['Duration']); ?> minutes</div>
+                            <div class="form-control" style="background-color: #f0f0f0;"><?php echo htmlspecialchars($examDetails['duration_minutes']); ?> minutes</div>
                         </div>
                         <div class="form-group">
                             <label class="form-label"><i class="fas fa-user-tie"></i> Examiner</label>
-                            <div class="form-control" readonly><?php echo htmlspecialchars($examDetails['F_Name'] . ' ' . $examDetails['L_Name']); ?></div>
+                            <div class="form-control" style="background-color: #f0f0f0;"><?php echo htmlspecialchars($examDetails['first_name'] . ' ' . $examDetails['last_name']); ?></div>
                         </div>
                         <div class="form-group">
                             <label class="form-label"><i class="fas fa-building"></i> Department</label>
-                            <div class="form-control" readonly><?php echo htmlspecialchars($examDetails['D_Name']); ?></div>
+                            <div class="form-control" style="background-color: #f0f0f0;"><?php echo htmlspecialchars($examDetails['dept_name']); ?></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-calendar"></i> Scheduled At</label>
+                            <div class="form-control" style="background-color: #f0f0f0;"><?php echo $examDetails['scheduled_at'] ? htmlspecialchars(date('M d, Y H:i', strtotime($examDetails['scheduled_at']))) : 'Not scheduled'; ?></div>
                         </div>
                         <div class="form-group">
                             <label class="form-label"><i class="fas fa-align-left"></i> Description</label>
-                            <div class="form-control" readonly style="height: auto; min-height: 100px;"><?php echo isset($examDetails['Description']) ? htmlspecialchars($examDetails['Description']) : 'No description available'; ?></div>
+                            <div class="form-control" style="background-color: #f0f0f0; height: auto; min-height: 100px;"><?php echo isset($examDetails['description']) ? htmlspecialchars($examDetails['description']) : 'No description available'; ?></div>
                         </div>
                     <?php else: ?>
                         <div class="alert alert-info">
@@ -133,7 +141,7 @@
             <div class="card">
                 <div class="card-header">
                     <h1 class="card-title"><i class="fas fa-user-plus"></i> Register Exam</h1>
-                    <p class="card-subtitle">Fill in the form to register for an exam</p>
+                    <p class="card-subtitle">Select an exam to register</p>
                 </div>
                 <div class="card-body">
                     <?php if (!empty($message)): ?>
@@ -145,61 +153,47 @@
                     <form action="registerExam.php<?php echo $selectedExamId ? '?id=' . htmlspecialchars($selectedExamId) : ''; ?>" method="post">
 
                         <div class="form-group">
-                            <label for="employee-id" class="form-label">Employee ID</label>
-                            <input type="text" name="employee-id" id="employee-id" class="form-control" placeholder="Enter Employee ID" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" id="email" name="email" class="form-control" placeholder="Enter Email" value="<?php echo isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : ''; ?>" required>
-                        </div>
-
-                        <div class="form-group">
                             <label for="exam" class="form-label">Select Exam</label>
                             <?php
-                                $sql = "SELECT E_Name FROM exam";
+                                $sql = "SELECT id, code, name FROM exam ORDER BY scheduled_at DESC, name";
                                 $result = $conn->query($sql);
                                 if($result && $result->num_rows > 0){
                             ?>
-                            <select name="exam" id="exam" class="form-control" required onchange="if(this.value) window.location.href='registerExam.php?id=' + (this.options[this.selectedIndex].getAttribute('data-id') || '') + '&exam_name=' + encodeURIComponent(this.value)">
+                            <select name="exam_id" id="exam" class="form-control" required onchange="if(this.value) window.location.href='registerExam.php?id=' + this.value">
                                 <option value="" disabled <?php echo !$selectedExamId ? 'selected' : ''; ?>>Select an exam</option>
-
                                 <?php
-                                    // We need E_ID to reload the page with details.
-                                    // The current logic uses ?id=E_ID.
-                                    // But the select option value is E_Name.
-                                    // I need to fetch E_ID as well.
-                                    $sql = "SELECT E_ID, E_Name FROM exam";
-                                    $result = $conn->query($sql);
-
                                     while ($row = $result->fetch_assoc()) {
-                                        $examName = $row['E_Name'];
-                                        $examId = $row['E_ID'];
-                                        $selected = ($examDetails && $examDetails['E_Name'] === $examName) ? 'selected' : '';
-                                        echo "<option value=\"" . htmlspecialchars($examName) . "\" data-id=\"" . htmlspecialchars($examId) . "\" $selected>" . htmlspecialchars($examName) . "</option>";
+                                        $selected = ($examDetails && $examDetails['id'] == $row['id']) ? 'selected' : '';
+                                        echo "<option value=\"" . htmlspecialchars($row['id']) . "\" $selected>" . htmlspecialchars($row['code'] . ' - ' . $row['name']) . "</option>";
                                     }
-
                                 ?>
                             </select>
                             <?php
-                                }
-                                else{
-                                echo "<p class='text-error'>No exam found.</p>";
+                                } else {
+                                    echo "<p class='text-error'>No exams available.</p>";
                                 }
                             ?>
                         </div>
 
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">Register Exam</button>
+                        <?php if ($examDetails): ?>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-check"></i> Confirm Registration
+                        </button>
+                        <?php endif; ?>
                     </form>
+
+                    <div class="mt-lg">
+                        <a href="../index.php" class="btn btn-outline" style="width: 100%; justify-content: center;">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <?php
-        include ("../includes/footer.php");
-    ?>
+    <?php include ("../includes/footer.php"); ?>
 
     <script src="../scripts/script.js"></script>
 

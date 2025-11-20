@@ -6,50 +6,76 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Employee'){
+if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Staff'){
     header("Location: ../auth/login.php");
     exit();
 }
 global $conn;
-$eid = $_GET['updateid'];
-// Fetch the exam details
+$eid = (int)$_GET['updateid'];
 
-$sql1 = "SELECT * FROM exam WHERE E_ID= '$eid'";
-$result = mysqli_query($conn, $sql1);
+// Fetch the exam details
+$sql1 = "SELECT e.*, d.name as dept_name FROM exam e LEFT JOIN department d ON e.department_id = d.id WHERE e.id = ?";
+$stmt = $conn->prepare($sql1);
+$stmt->bind_param("i", $eid);
+$stmt->execute();
+$result = $stmt->get_result();
 $row = $result->fetch_assoc();
 
-$Ename = $row['E_Name'];
-$Qpassword = $row['Q_password'];
-$Duration = $row['Duration'];
-$Sid=$row['S_ID'];
+$code = $row['code'] ?? '';
+$name = $row['name'] ?? '';
+$description = $row['description'] ?? '';
+$departmentId = $row['department_id'] ?? '';
+$durationMinutes = $row['duration_minutes'] ?? 60;
+$scheduledAt = $row['scheduled_at'] ? date('Y-m-d\TH:i', strtotime($row['scheduled_at'])) : '';
+$totalQuestions = $row['total_questions'] ?? 10;
+$maxScore = $row['max_score'] ?? 100.00;
+$createdBy = $row['created_by'] ?? '';
 
 // Check if form is submitted
 if (isset($_POST['submit'])) {
-    // $eid = $_POST["eid"];
-    $Ename = $_POST["ename"];
-    $Qpassword = $_POST["Q_password"];
-    $Duration = $_POST["Duration"];
-    // $Sid = $_POST["Sid"];
+    $code = mysqli_real_escape_string($conn, $_POST["code"]);
+    $name = mysqli_real_escape_string($conn, $_POST["name"]);
+    $description = mysqli_real_escape_string($conn, $_POST["description"]);
+    $departmentId = (int)$_POST["department_id"];
+    $durationMinutes = (int)$_POST["duration"];
+    $scheduledAt = $_POST["scheduled_at"] ?? null;
+    $totalQuestions = (int)$_POST["total_questions"];
+    $maxScore = (float)$_POST["max_score"];
 
-    global $conn;
-    // Update the exam information
-    $sql2 = "UPDATE exam SET
-        E_name='$Ename',
-        Q_password='$Qpassword',
-        Duration='$Duration'
-        WHERE E_ID='$eid'";
+    // Handle password update (only if provided)
+    $passwordChanged = !empty($_POST["quiz_password"]);
 
-    $result = mysqli_query($conn, $sql2);
+    if ($passwordChanged) {
+        $quizPassword = $_POST["quiz_password"];
+        $quizPasswordHash = password_hash($quizPassword, PASSWORD_DEFAULT);
 
-    if ($result) {
+        $sql2 = "UPDATE exam SET code=?, name=?, description=?, department_id=?, quiz_password_hash=?,
+                duration_minutes=?, scheduled_at=?, total_questions=?, max_score=?, updated_at=NOW()
+                WHERE id=?";
+        $stmt = $conn->prepare($sql2);
+        $stmt->bind_param("sssisssidi", $code, $name, $description, $departmentId, $quizPasswordHash,
+                         $durationMinutes, $scheduledAt, $totalQuestions, $maxScore, $eid);
+    } else {
+        $sql2 = "UPDATE exam SET code=?, name=?, description=?, department_id=?,
+                duration_minutes=?, scheduled_at=?, total_questions=?, max_score=?, updated_at=NOW()
+                WHERE id=?";
+        $stmt = $conn->prepare($sql2);
+        $stmt->bind_param("ssisissdi", $code, $name, $description, $departmentId,
+                         $durationMinutes, $scheduledAt, $totalQuestions, $maxScore, $eid);
+    }
+
+    if ($stmt->execute()) {
         echo '<script>alert("Updated Successfully");</script>';
 
         // Redirect based on user role
-        if ($_SESSION['Role'] == 'Manager') {
+        if ($_SESSION['role'] == 'Manager') {
             echo '<script>window.location.href = "../dashboards/manager_dashboard.php";</script>';
-        } elseif ($_SESSION['Role'] == 'Admin') {
+        } elseif ($_SESSION['role'] == 'Admin') {
             echo '<script>window.location.href = "../dashboards/admin_dashboard.php";</script>';
+        } elseif ($_SESSION['role'] == 'Examiner') {
+            echo '<script>window.location.href = "../dashboards/examiner_dashboard.php";</script>';
         }
+        exit;
     } else {
         die($conn->error);
     }
@@ -78,27 +104,71 @@ if (isset($_POST['submit'])) {
                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) . '?updateid=' . htmlspecialchars($eid); ?>" method="post">
                     <div class="form-group">
                         <label for="eid" class="form-label">Exam ID</label>
-                        <input type="text" id="eid" name="eid" class="form-control" value="<?php echo htmlspecialchars($eid); ?>" disabled>
+                        <input type="text" id="eid" class="form-control" value="<?php echo htmlspecialchars($eid); ?>" disabled style="background-color: #f0f0f0;">
                     </div>
 
                     <div class="form-group">
-                        <label for="ename" class="form-label">Exam Name</label>
-                        <input type="text" id="ename" name="ename" class="form-control" value="<?php echo htmlspecialchars($Ename); ?>" required>
+                        <label for="code" class="form-label">Exam Code</label>
+                        <input type="text" id="code" name="code" class="form-control" value="<?php echo htmlspecialchars($code); ?>" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="Q_password" class="form-label">Quiz Password</label>
-                        <input type="text" id="Q_password" name="Q_password" class="form-control" value="<?php echo htmlspecialchars($Qpassword); ?>" required>
+                        <label for="name" class="form-label">Exam Name</label>
+                        <input type="text" id="name" name="name" class="form-control" value="<?php echo htmlspecialchars($name); ?>" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="Duration" class="form-label">Duration (HH:MM:SS)</label>
-                        <input type="text" id="Duration" name="Duration" class="form-control" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" value="<?php echo htmlspecialchars($Duration); ?>" required>
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" name="description" class="form-control" rows="3"><?php echo htmlspecialchars($description); ?></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="Sid" class="form-label">Staff ID</label>
-                        <input type="text" id="Sid" name="Sid" class="form-control" value="<?php echo htmlspecialchars($Sid); ?>" disabled>
+                        <label for="department_id" class="form-label">Department</label>
+                        <?php
+                            $deptSql = "SELECT id, name FROM department ORDER BY name";
+                            $deptResult = $conn->query($deptSql);
+                            if($deptResult && $deptResult->num_rows > 0){
+                        ?>
+                            <select name="department_id" id="department_id" class="form-control" required>
+                                <option value="">Select Department</option>
+                                <?php
+                                    while ($dept = $deptResult->fetch_assoc()) {
+                                        $selected = ($departmentId == $dept['id']) ? 'selected' : '';
+                                        echo "<option value=\"" . htmlspecialchars($dept['id']) . "\" $selected>" . htmlspecialchars($dept['name']) . "</option>";
+                                    }
+                                ?>
+                            </select>
+                        <?php
+                            } else {
+                                echo "<p class='text-error'>No departments found.</p>";
+                            }
+                        ?>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quiz_password" class="form-label">Quiz Password</label>
+                        <input type="text" id="quiz_password" name="quiz_password" class="form-control" placeholder="Leave empty to keep current password">
+                        <small class="field-hint">Only fill this if you want to change the password</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration" class="form-label">Duration (minutes)</label>
+                        <input type="number" id="duration" name="duration" class="form-control" min="1" max="300" value="<?php echo htmlspecialchars($durationMinutes); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="scheduled_at" class="form-label">Scheduled Date & Time</label>
+                        <input type="datetime-local" id="scheduled_at" name="scheduled_at" class="form-control" value="<?php echo htmlspecialchars($scheduledAt); ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="total_questions" class="form-label">Total Questions</label>
+                        <input type="number" id="total_questions" name="total_questions" class="form-control" min="1" value="<?php echo htmlspecialchars($totalQuestions); ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="max_score" class="form-label">Maximum Score</label>
+                        <input type="number" step="0.01" id="max_score" name="max_score" class="form-control" value="<?php echo htmlspecialchars($maxScore); ?>" required>
                     </div>
 
                     <button type="submit" name="submit" class="btn btn-primary" style="width: 100%;">Update Exam</button>
