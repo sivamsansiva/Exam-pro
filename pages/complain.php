@@ -1,12 +1,12 @@
 <?php
 //Linking the configuration file
-require ('../config/config.php');
+require('../config/config.php');
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff'){
+if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff') {
     header("Location: ../auth/login.php");
     exit();
 }
@@ -14,20 +14,20 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff'){
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Complaint Form</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <?php
-        include ('../includes/header.php')
+    include('../includes/header.php')
     ?>
 
     <div class="container mt-4 mb-4">
-        <div class="card" style="max-width: 700px; margin: 0 auto;">
+        <div class="card">
             <div class="card-header">
                 <h2 class="card-title text-center">Submit Your Complaint</h2>
             </div>
@@ -43,11 +43,11 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff'){
                         <textarea id="c_detail" name="c_detail" rows="8" class="form-control" placeholder="Describe your complaint in detail" required></textarea>
                     </div>
 
-                    <div id="errorMessage" class="alert alert-error" style="display: none;"></div>
-                    <div id="successMessage" class="alert alert-success" style="display: none;"></div>
+                    <div id="errorMessage" class="alert alert-error"></div>
+                    <div id="successMessage" class="alert alert-success"></div>
 
                     <div class="text-center">
-                        <button type="submit" name="submit" class="btn btn-primary btn-lg" style="width: 100%;">Submit Complaint</button>
+                        <button type="submit" name="submit" class="btn btn-primary btn-lg">Submit Complaint</button>
                     </div>
                 </form>
             </div>
@@ -57,8 +57,7 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff'){
     <script src="../scripts/script.js"></script>
     <script>
         // JavaScript form validation
-        document.getElementById("complaintForm").onsubmit = function(event)
-        {
+        document.getElementById("complaintForm").onsubmit = function(event) {
             let c_title = document.getElementById("c_title").value;
             let c_detail = document.getElementById("c_detail").value;
 
@@ -81,13 +80,14 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff'){
         };
     </script>
     <?php
-        include ('../includes/footer.php')
+    include('../includes/footer.php')
     ?>
 </body>
+
 </html>
 <?php
 
-if(isset($_POST["submit"])){
+if (isset($_POST["submit"])) {
     $userId = $_SESSION['user_id'];
     $c_title = $_POST["c_title"];
     $c_detail = $_POST["c_detail"];
@@ -102,7 +102,7 @@ if(isset($_POST["submit"])){
     $stmt->bind_param("isss", $userId, $messageType, $messageContent, $status);
 
     // Execute query
-    if($stmt->execute()) {
+    if ($stmt->execute()) {
         $stmt->close();
         echo '<script>alert("Complaint submitted successfully!");</script>';
         echo '<script>window.location.href = "../index.php";</script>';

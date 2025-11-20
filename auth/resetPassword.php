@@ -50,56 +50,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="../styles/auth.css">
 </head>
+
 <body>
-<div class="auth-wrapper" role="main">
-    <div class="auth-card">
-        <header class="auth-header">
-            <h1 class="auth-title">Reset Password</h1>
-            <p class="auth-subtitle">Create a new password for your account.</p>
-        </header>
+    <div class="auth-wrapper" role="main">
+        <div class="auth-card">
+            <header class="auth-header">
+                <h1 class="auth-title">Reset Password</h1>
+                <p class="auth-subtitle">Create a new password for your account.</p>
+            </header>
 
-        <?php if ($errors): ?>
-            <div class="alert alert-error" role="alert">
-                <ul class="alert-list">
-                    <?php foreach ($errors as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        <?php endif; ?>
-
-        <form method="post" class="auth-form">
-            <div class="form-field password-field">
-                <label for="newPassword">New Password</label>
-                <div class="input-wrapper">
-                    <input type="password" id="newPassword" name="newPassword" required minlength="8" autocomplete="new-password" data-password-field>
-                    <button type="button" class="password-toggle" data-toggle-password aria-label="Toggle password visibility">
-                        <span class="toggle-text">Show</span>
-                    </button>
+            <?php if ($errors): ?>
+                <div class="alert alert-error" role="alert">
+                    <ul class="alert-list">
+                        <?php foreach ($errors as $error): ?>
+                            <li><?php echo htmlspecialchars($error); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
                 </div>
-            </div>
+            <?php endif; ?>
 
-            <div class="form-field password-field">
-                <label for="confirmPassword">Confirm Password</label>
-                <div class="input-wrapper">
-                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8" autocomplete="new-password" data-password-field>
-                    <button type="button" class="password-toggle" data-toggle-password aria-label="Toggle password visibility">
-                        <span class="toggle-text">Show</span>
-                    </button>
+            <form method="post" class="auth-form">
+                <div class="form-field password-field">
+                    <label for="newPassword">New Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="newPassword" name="newPassword" required minlength="8" autocomplete="new-password" data-password-field>
+                        <button type="button" class="password-toggle" data-toggle-password aria-label="Toggle password visibility">
+                            <span class="toggle-text">Show</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <button type="submit" class="auth-button">Update Password</button>
-        </form>
+                <div class="form-field password-field">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8" autocomplete="new-password" data-password-field>
+                        <button type="button" class="password-toggle" data-toggle-password aria-label="Toggle password visibility">
+                            <span class="toggle-text">Show</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="auth-button">Update Password</button>
+            </form>
+        </div>
     </div>
-</div>
-<script src="../scripts/auth.js" defer></script>
+    <script src="../scripts/auth.js" defer></script>
 </body>
+
 </html>

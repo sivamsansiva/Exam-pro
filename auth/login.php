@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($authenticated) {
             $_SESSION['user_id'] = $userId;
             $_SESSION['email'] = $normalizedEmail;
-            $_SESSION['role'] = ucfirst($role);
+            $_SESSION['role'] = $role; // Store lowercase role consistently
             $_SESSION['role_key'] = $role;
 
             if ($department !== null) {
@@ -84,58 +84,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="../styles/auth.css">
 </head>
+
 <body>
-<div class="auth-wrapper" role="main">
-    <div class="auth-card">
-        <header class="auth-header">
-            <h1 class="auth-title">Welcome Back</h1>
-            <p class="auth-subtitle">Sign in to manage examinations, evaluations, and employee progress.</p>
-        </header>
+    <div class="auth-wrapper" role="main">
+        <div class="auth-card">
+            <header class="auth-header">
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to manage examinations, evaluations, and employee progress.</p>
+            </header>
 
-        <?php if ($errors): ?>
-            <div class="alert alert-error" role="alert">
-                <ul class="alert-list">
-                    <?php foreach ($errors as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        <?php endif; ?>
-
-        <form method="post" class="auth-form" data-form-type="login">
-            <div class="form-field">
-                <label for="email">Work Email</label>
-                <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required autocomplete="email" autofocus>
-            </div>
-
-            <div class="form-field password-field">
-                <label for="password">Password</label>
-                <div class="input-wrapper">
-                    <input type="password" id="password" name="password" required minlength="8" autocomplete="current-password" data-password-field>
-                    <button type="button" class="password-toggle" data-toggle-password aria-label="Toggle password visibility">
-                        <span class="toggle-text">Show</span>
-                    </button>
+            <?php if ($errors): ?>
+                <div class="alert alert-error" role="alert">
+                    <ul class="alert-list">
+                        <?php foreach ($errors as $error): ?>
+                            <li><?php echo htmlspecialchars($error); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
                 </div>
-            </div>
+            <?php endif; ?>
 
-            <button type="submit" class="auth-button">Sign In</button>
+            <form method="post" class="auth-form" data-form-type="login">
+                <div class="form-field">
+                    <label for="email">Work Email</label>
+                    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required autocomplete="email" autofocus>
+                </div>
 
-            <div class="auth-links">
-                <a href="forgetPassword.php">Forgot password?</a>
-                <span>Need an account? <a href="register.php">Register</a></span>
-            </div>
-        </form>
+                <div class="form-field password-field">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" required minlength="8" autocomplete="current-password" data-password-field>
+                        <button type="button" class="password-toggle" data-toggle-password aria-label="Toggle password visibility">
+                            <span class="toggle-text">Show</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="auth-button">Sign In</button>
+
+                <div class="auth-links">
+                    <a href="forgetPassword.php">Forgot password?</a>
+                    <span>Need an account? <a href="register.php">Register</a></span>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<script src="../scripts/auth.js" defer></script>
+    <script src="../scripts/auth.js" defer></script>
 </body>
-</html>
 
+</html>

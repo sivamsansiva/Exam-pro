@@ -4,7 +4,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Examiner' || $_SESSION['role'] == 'Staff'){
+if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Examiner' || $_SESSION['role'] == 'Staff') {
     header("Location: ../auth/login.php");
     exit();
 }
@@ -101,19 +101,18 @@ if (isset($_POST['submit'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Staff - ExamPro</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="../styles/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <?php include('../includes/header.php'); ?>
 
     <div class="container mt-xl">
-        <div class="card" style="max-width: 800px; margin: 0 auto;">
+        <div class="card">
             <h2 class="text-primary mb-lg text-center">
                 <i class="fas fa-user-edit"></i> Update Exam Staff Profile
             </h2>
@@ -132,11 +131,11 @@ if (isset($_POST['submit'])) {
 
                     <div class="form-group">
                         <label class="form-label">Gender</label>
-                        <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div>
+                            <label>
                                 <input type="radio" name="gender" value="Male" <?php if ($gender == "Male") echo "checked"; ?>> Male
                             </label>
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <label>
                                 <input type="radio" name="gender" value="Female" <?php if ($gender == "Female") echo "checked"; ?>> Female
                             </label>
                         </div>
@@ -185,7 +184,7 @@ if (isset($_POST['submit'])) {
                     <button type="submit" name="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Update Staff
                     </button>
-                    <a href="javascript:history.back()" class="btn btn-secondary" style="margin-left: 1rem;">Cancel</a>
+                    <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
         </div>
@@ -193,6 +192,5 @@ if (isset($_POST['submit'])) {
 
     <?php include('../includes/footer.php'); ?>
 </body>
+
 </html>
-
-

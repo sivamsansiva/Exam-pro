@@ -16,6 +16,10 @@ $userRole = $_SESSION['role'];
 $userEmail = $_SESSION['email'];
 $userId = $_SESSION['user_id'];
 
+// Check if this is profile completion mode
+$isProfileCompletion = isset($_GET['complete']) && $_GET['complete'] == '1';
+$redirectAfterCompletion = isset($_GET['redirect']) ? $_GET['redirect'] : '../index.php';
+
 // Initialize variables
 $userData = [];
 $phoneData = [];
@@ -41,63 +45,112 @@ $phoneNo = $phoneRow['phone'] ?? '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
-    $fname = $_POST['fname'];
-    $lname = $_POST['lname'];
-    $email = $_POST['email'];
-    $dob = $_POST['dob'];
-    $phone = $_POST['phone'];
-    $gender = $_POST['gender'];
-    $departmentId = $_POST['department_id'];
+    $fname = mysqli_real_escape_string($conn, $_POST['fname']);
+    $lname = mysqli_real_escape_string($conn, $_POST['lname']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $dob = mysqli_real_escape_string($conn, $_POST['dob']);
+    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+    $gender = mysqli_real_escape_string($conn, $_POST['gender']);
+    $departmentId = mysqli_real_escape_string($conn, $_POST['department_id']);
+    $nic = mysqli_real_escape_string($conn, $_POST['nic']);
 
-    // Update user information
-    $stmt = $conn->prepare("
-        UPDATE users SET
-            first_name = ?,
-            last_name = ?,
-            email = ?,
-            dob = ?,
-            gender = ?,
-            department_id = ?
-        WHERE id = ?
-    ");
-    $stmt->bind_param("ssssssi", $fname, $lname, $email, $dob, $gender, $departmentId, $userId);
+    // Validate NIC (mandatory for staff)
+    if ($userRole === 'staff' && empty($nic)) {
+        $errorMessage = "NIC is mandatory for staff members.";
+    } else {
+        // Update user information including NIC
+        $stmt = $conn->prepare("
+            UPDATE users SET
+                first_name = ?,
+                last_name = ?,
+                email = ?,
+                dob = ?,
+                gender = ?,
+                department_id = ?,
+                nic = ?,
+                updated_at = NOW()
+            WHERE id = ?
+        ");
+        $stmt->bind_param("sssssssi", $fname, $lname, $email, $dob, $gender, $departmentId, $nic, $userId);
 
-    if ($stmt->execute()) {
-        $stmt->close();
-
-        // Update or insert phone number
-        $stmt = $conn->prepare("SELECT user_id FROM user_phone WHERE user_id = ? LIMIT 1");
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        $phoneResult = $stmt->get_result();
-        $stmt->close();
-
-        if ($phoneResult->num_rows > 0) {
-            // Update existing phone
-            $stmt = $conn->prepare("UPDATE user_phone SET phone = ? WHERE user_id = ?");
-            $stmt->bind_param("si", $phone, $userId);
-            $stmt->execute();
+        if ($stmt->execute()) {
             $stmt->close();
-        } else {
-            // Insert new phone
-            $stmt = $conn->prepare("INSERT INTO user_phone (user_id, phone) VALUES (?, ?)");
-            $stmt->bind_param("is", $userId, $phone);
+
+            // Update or insert phone number
+            $stmt = $conn->prepare("SELECT user_id FROM user_phone WHERE user_id = ? LIMIT 1");
+            $stmt->bind_param("i", $userId);
             $stmt->execute();
+            $phoneResult = $stmt->get_result();
             $stmt->close();
+
+            if ($phoneResult->num_rows > 0) {
+                // Update existing phone
+                $stmt = $conn->prepare("UPDATE user_phone SET phone = ? WHERE user_id = ?");
+                $stmt->bind_param("si", $phone, $userId);
+                $stmt->execute();
+                $stmt->close();
+            } else {
+                // Insert new phone
+                $stmt = $conn->prepare("INSERT INTO user_phone (user_id, phone) VALUES (?, ?)");
+                $stmt->bind_param("is", $userId, $phone);
+                $stmt->execute();
+                $stmt->close();
+            }
+
+            $updateSuccess = true;
+
+            // If this was profile completion, redirect to original page
+            if ($isProfileCompletion && !empty($nic) && !empty($fname) && !empty($lname)) {
+                header("Location: " . $redirectAfterCompletion);
+                exit();
+            }
+
+            // Otherwise refresh current page
+            header("Location: profile.php?success=1");
+            exit();
         }
-
-        $updateSuccess = true;
-
-        // Refresh data
-        header("Location: profile.php?success=1");
-        exit();
+        $stmt->close();
     }
+}
+
+// Handle password change
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
+    $currentPassword = $_POST['current_password'];
+    $newPassword = $_POST['new_password'];
+    $confirmPassword = $_POST['confirm_password'];
+
+    // Fetch current password hash
+    $stmt = $conn->prepare("SELECT password_hash FROM users WHERE id = ?");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
     $stmt->close();
+
+    if (!password_verify($currentPassword, $user['password_hash'])) {
+        $errorMessage = "Current password is incorrect.";
+    } elseif ($newPassword !== $confirmPassword) {
+        $errorMessage = "New password and confirmation do not match.";
+    } elseif (strlen($newPassword) < 8) {
+        $errorMessage = "New password must be at least 8 characters long.";
+    } else {
+        $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?");
+        $stmt->bind_param("si", $newPasswordHash, $userId);
+
+        if ($stmt->execute()) {
+            $stmt->close();
+            header("Location: profile.php?password_success=1");
+            exit();
+        } else {
+            $errorMessage = "Failed to update password. Please try again.";
+        }
+    }
 }
 
 // Get exam results for staff role
 $examResults = [];
-if ($userRole === 'Staff' && isset($userId)) {
+if ($userRole === 'staff' && isset($userId)) {
     $stmt = $conn->prepare("
         SELECT e.id, e.code, e.name, ea.attempt_no, ea.score, ea.started_at, ea.ended_at, e.max_score
         FROM exam_attempt ea
@@ -118,24 +171,32 @@ if ($userRole === 'Staff' && isset($userId)) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($userRole); ?> Profile - ExamPro</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="../styles/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <?php include("../includes/header.php"); ?>
 
     <div class="container mt-xl">
+        <!-- Profile Completion Notice -->
+        <?php if ($isProfileCompletion): ?>
+            <div class="alert alert-warning mb-lg">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Profile Completion Required!</strong><br>
+                Please complete your profile with all mandatory fields (including NIC) before you can register or take exams.
+            </div>
+        <?php endif; ?>
+
         <!-- Profile Header -->
-        <div class="card mb-lg" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white;">
-            <div style="padding: 1rem;">
-                <h1 style="margin: 0 0 0.5rem 0; font-size: 2rem;">Hello, <?php echo htmlspecialchars($userData['first_name'] ?? 'User'); ?> <?php echo htmlspecialchars($userData['last_name'] ?? ''); ?>!</h1>
-                <p style="opacity: 0.9; font-size: 1.1rem; margin: 0;">
-                    <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars($userRole); ?>
+        <div class="card mb-lg">
+            <div>
+                <h1>Hello, <?php echo htmlspecialchars($userData['first_name'] ?? 'User'); ?> <?php echo htmlspecialchars($userData['last_name'] ?? ''); ?>!</h1>
+                <p>
+                    <i class="fas fa-user-circle"></i> <?php echo htmlspecialchars(ucfirst($userRole)); ?>
                 </p>
             </div>
         </div>
@@ -146,27 +207,41 @@ if ($userRole === 'Staff' && isset($userId)) {
             </div>
         <?php endif; ?>
 
-        <?php if ($userRole === 'Admin'): ?>
-            <a href="../dashboards/admin_dashboard.php" class="btn btn-secondary mb-lg" style="display: inline-block;">
-                <i class="fas fa-tachometer-alt"></i> Go to Admin Dashboard
-            </a>
-        <?php elseif ($userRole === 'Manager'): ?>
-            <a href="../dashboards/manager_dashboard.php" class="btn btn-secondary mb-lg" style="display: inline-block;">
-                <i class="fas fa-tachometer-alt"></i> Go to Manager Dashboard
-            </a>
-        <?php elseif ($userRole === 'Examiner'): ?>
-            <a href="../dashboards/examiner_dashboard.php" class="btn btn-secondary mb-lg" style="display: inline-block;">
-                <i class="fas fa-tachometer-alt"></i> Go to Examiner Dashboard
-            </a>
-        <?php elseif ($userRole === 'Staff'): ?>
-            <a href="../dashboards/user_dashboard.php" class="btn btn-secondary mb-lg" style="display: inline-block;">
-                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
-            </a>
+        <?php if (isset($_GET['password_success'])): ?>
+            <div class="alert alert-success mb-lg">
+                <i class="fas fa-check-circle"></i> Password changed successfully!
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($errorMessage)): ?>
+            <div class="alert alert-error mb-lg">
+                <i class="fas fa-times-circle"></i> <?php echo htmlspecialchars($errorMessage); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!$isProfileCompletion): ?>
+            <?php if ($userRole === 'admin'): ?>
+                <a href="../dashboards/admin_dashboard.php" class="btn btn-secondary mb-lg">
+                    <i class="fas fa-tachometer-alt"></i> Go to Admin Dashboard
+                </a>
+            <?php elseif ($userRole === 'manager'): ?>
+                <a href="../dashboards/manager_dashboard.php" class="btn btn-secondary mb-lg">
+                    <i class="fas fa-tachometer-alt"></i> Go to Manager Dashboard
+                </a>
+            <?php elseif ($userRole === 'examiner'): ?>
+                <a href="../dashboards/examiner_dashboard.php" class="btn btn-secondary mb-lg">
+                    <i class="fas fa-tachometer-alt"></i> Go to Examiner Dashboard
+                </a>
+            <?php elseif ($userRole === 'staff'): ?>
+                <a href="../dashboards/user_dashboard.php" class="btn btn-secondary mb-lg">
+                    <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                </a>
+            <?php endif; ?>
         <?php endif; ?>
 
         <!-- Profile Information Card -->
         <div class="card mb-xl">
-            <h2 class="text-primary mb-lg" style="border-bottom: 2px solid var(--secondary-color); padding-bottom: 0.5rem;">
+            <h2="text-primary mb-lg">
                 <i class="fas fa-user-edit"></i> Profile Information
             </h2>
 
@@ -175,45 +250,45 @@ if ($userRole === 'Staff' && isset($userId)) {
                     <div class="form-group">
                         <label for="fname" class="form-label">First Name</label>
                         <input type="text" id="fname" name="fname" class="form-control"
-                               value="<?php echo htmlspecialchars($userData['first_name'] ?? ''); ?>" required>
+                            value="<?php echo htmlspecialchars($userData['first_name'] ?? ''); ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label for="lname" class="form-label">Last Name</label>
                         <input type="text" id="lname" name="lname" class="form-control"
-                               value="<?php echo htmlspecialchars($userData['last_name'] ?? ''); ?>" required>
+                            value="<?php echo htmlspecialchars($userData['last_name'] ?? ''); ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label for="email" class="form-label">Email</label>
                         <input type="email" id="email" name="email" class="form-control"
-                               value="<?php echo htmlspecialchars($userData['email'] ?? ''); ?>" required>
+                            value="<?php echo htmlspecialchars($userData['email'] ?? ''); ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label for="phone" class="form-label">Mobile Number</label>
                         <input type="tel" id="phone" name="phone" class="form-control" pattern="[0-9]{10}"
-                               placeholder="07XXXXXXXX"
-                               value="<?php echo htmlspecialchars($phoneNo); ?>" required>
+                            placeholder="07XXXXXXXX"
+                            value="<?php echo htmlspecialchars($phoneNo); ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label for="dob" class="form-label">Date of Birth</label>
                         <input type="date" id="dob" name="dob" class="form-control"
-                               value="<?php echo htmlspecialchars($userData['dob'] ?? ''); ?>" required>
+                            value="<?php echo htmlspecialchars($userData['dob'] ?? ''); ?>" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Gender</label>
-                        <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div>
+                            <label>
                                 <input type="radio" name="gender" value="Male"
-                                       <?php echo (isset($userData['gender']) && $userData['gender'] == 'Male') ? 'checked' : ''; ?> required>
+                                    <?php echo (isset($userData['gender']) && $userData['gender'] == 'Male') ? 'checked' : ''; ?> required>
                                 Male
                             </label>
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <label>
                                 <input type="radio" name="gender" value="Female"
-                                       <?php echo (isset($userData['gender']) && $userData['gender'] == 'Female') ? 'checked' : ''; ?> required>
+                                    <?php echo (isset($userData['gender']) && $userData['gender'] == 'Female') ? 'checked' : ''; ?> required>
                                 Female
                             </label>
                         </div>
@@ -234,9 +309,25 @@ if ($userRole === 'Staff' && isset($userId)) {
                     </div>
 
                     <div class="form-group">
+                        <label for="nic" class="form-label">
+                            NIC (National Identity Card)
+                            <?php if ($userRole === 'staff'): ?>
+                                <span>*</span>
+                            <?php endif; ?>
+                        </label>
+                        <input type="text" id="nic" name="nic" class="form-control"
+                            placeholder="e.g., 199512345678 or 951234567V"
+                            value="<?php echo htmlspecialchars($userData['nic'] ?? ''); ?>"
+                            <?php echo ($userRole === 'staff') ? 'required' : ''; ?>>
+                        <?php if ($userRole === 'staff'): ?>
+                            <small class="field-hint">NIC is mandatory for staff members to register or take exams</small>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="form-group">
                         <label for="role_display" class="form-label">Role</label>
                         <input type="text" id="role_display" class="form-control"
-                               value="<?php echo htmlspecialchars($userData['role'] ?? ''); ?>" readonly style="background-color: #f8f9fa;">
+                            value="<?php echo htmlspecialchars(ucfirst($userData['role'] ?? '')); ?>" readonly>
                     </div>
                 </div>
 
@@ -248,24 +339,57 @@ if ($userRole === 'Staff' && isset($userId)) {
             </form>
         </div>
 
-        <?php if ($userRole === 'Staff' && count($examResults) > 0): ?>
+        <!-- Change Password Card -->
+        <div class="card mb-xl">
+            <h2 class="text-primary mb-lg">
+                <i class="fas fa-key"></i> Change Password
+            </h2>
+
+            <form method="POST" action="profile.php" id="passwordForm">
+                <div class="form-group">
+                    <label for="current_password" class="form-label">Current Password</label>
+                    <input type="password" id="current_password" name="current_password" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="new_password" class="form-label">New Password</label>
+                    <input type="password" id="new_password" name="new_password" class="form-control"
+                        minlength="8" required>
+                    <small class="field-hint">Password must be at least 8 characters long</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control"
+                        minlength="8" required>
+                </div>
+
+                <div class="mt-lg text-center">
+                    <button type="submit" name="change_password" class="btn btn-secondary">
+                        <i class="fas fa-lock"></i> Change Password
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <?php if ($userRole === 'staff' && count($examResults) > 0): ?>
             <!-- Exam Results Card -->
             <div class="card mb-xl">
-                <h2 class="text-primary mb-lg" style="border-bottom: 2px solid var(--secondary-color); padding-bottom: 0.5rem;">
+                <h2 class="text-primary mb-lg">
                     <i class="fas fa-chart-line"></i> My Exam Results
                 </h2>
 
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse;">
+                <div>
+                    <table>
                         <thead>
-                            <tr style="background-color: #f8f9fa;">
-                                <th style="padding: 1rem; text-align: left; color: var(--primary-color);">Exam Code</th>
-                                <th style="padding: 1rem; text-align: left; color: var(--primary-color);">Exam Name</th>
-                                <th style="padding: 1rem; text-align: left; color: var(--primary-color);">Attempt</th>
-                                <th style="padding: 1rem; text-align: left; color: var(--primary-color);">Score</th>
-                                <th style="padding: 1rem; text-align: left; color: var(--primary-color);">Percentage</th>
-                                <th style="padding: 1rem; text-align: left; color: var(--primary-color);">Status</th>
-                                <th style="padding: 1rem; text-align: left; color: var(--primary-color);">Date</th>
+                            <tr>
+                                <th>Exam Code</th>
+                                <th>Exam Name</th>
+                                <th>Attempt</th>
+                                <th>Score</th>
+                                <th>Percentage</th>
+                                <th>Status</th>
+                                <th>Date</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -292,7 +416,7 @@ if ($userRole === 'Staff' && isset($userId)) {
                     </table>
                 </div>
             </div>
-        <?php elseif ($userRole === 'Staff'): ?>
+        <?php elseif ($userRole === 'staff'): ?>
             <div class="card mb-xl text-center">
                 <h2><i class="fas fa-chart-line"></i> My Exam Results</h2>
                 <p class="text-muted mt-md">You haven't taken any exams yet.</p>
@@ -317,4 +441,5 @@ if ($userRole === 'Staff' && isset($userId)) {
         });
     </script>
 </body>
+
 </html>

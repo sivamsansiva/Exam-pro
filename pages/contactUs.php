@@ -1,55 +1,54 @@
 <?php
-   include("../config/config.php");
+include("../config/config.php");
 
-   if (session_status() == PHP_SESSION_NONE) {
+if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff'){
+if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff') {
     header("Location: ../auth/login.php");
     exit();
 }
-    // Database content
+// Database content
 
-   if($_SERVER["REQUEST_METHOD"] == "POST"){
-         $userId = $_SESSION['user_id'];
-         $messageContent = $_POST["message_content"];
-         $messageType = 'feedback';
-         $status = 'open';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $userId = $_SESSION['user_id'];
+    $messageContent = $_POST["message_content"];
+    $messageType = 'feedback';
+    $status = 'open';
 
-   global $conn;
+    global $conn;
 
-   $stmt = $conn->prepare("INSERT INTO message (user_id, type, content, status, created_at) VALUES (?, ?, ?, ?, NOW())");
-   $stmt->bind_param("isss", $userId, $messageType, $messageContent, $status);
+    $stmt = $conn->prepare("INSERT INTO message (user_id, type, content, status, created_at) VALUES (?, ?, ?, ?, NOW())");
+    $stmt->bind_param("isss", $userId, $messageType, $messageContent, $status);
 
-    if($stmt->execute()){
+    if ($stmt->execute()) {
         $stmt->close();
         echo '<script>alert("Feedback submitted successfully!");</script>';
         echo '<script>window.location.href = "../index.php";</script>';
-    }
-    else{
+    } else {
         $stmt->close();
         echo "Error: Unable to submit feedback.";
     }
-    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Feedback</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
-<?php
-    include ("../includes/header.php");
-?>
+    <?php
+    include("../includes/header.php");
+    ?>
     <!-- Add Feedback content -->
     <div class="container mt-4 mb-4">
-        <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card">
             <div class="card-header">
                 <h2 class="card-title text-center">Add Feedback</h2>
             </div>
@@ -61,15 +60,16 @@ if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff'){
                     </div>
 
                     <div class="text-center">
-                        <input type="submit" name="submit" value="Submit Feedback" class="btn btn-primary btn-lg" style="width: 100%;">
+                        <input type="submit" name="submit" value="Submit Feedback" class="btn btn-primary btn-lg">
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-<?php
-    include ("../includes/footer.php");
-?>
+    <?php
+    include("../includes/footer.php");
+    ?>
 </body>
+
 </html>

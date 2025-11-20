@@ -9,4 +9,3 @@ $port = '3308';
 
 $conn = new mysqli($servername, $username, $password, $database, $port);
 $conn->set_charset('utf8mb4');
-?>

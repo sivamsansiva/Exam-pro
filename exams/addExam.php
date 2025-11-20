@@ -1,77 +1,85 @@
 <?php
-   include("../config/config.php");
+include("../config/config.php");
 
-    if (session_status() == PHP_SESSION_NONE) {
-        session_start();
-    }
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
-    if (!isset($_SESSION['email']) || ($_SESSION['role'] != 'Manager' && $_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'Examiner')){
-        header("Location: ../auth/login.php");
-        exit();
-    }
+if (!isset($_SESSION['email']) || ($_SESSION['role'] != 'manager' && $_SESSION['role'] != 'admin' && $_SESSION['role'] != 'examiner')) {
+    header("Location: ../auth/login.php");
+    exit();
+}
 
-    $message = "";
-    $error = "";
+$message = "";
+$error = "";
 
-   if($_SERVER["REQUEST_METHOD"] == "POST"){
-        $code = mysqli_real_escape_string($conn, $_POST["code"]);
-        $name = mysqli_real_escape_string($conn, $_POST["name"]);
-        $description = mysqli_real_escape_string($conn, $_POST["description"]);
-        $durationMinutes = (int)$_POST["duration"];
-        $departmentId = (int)$_POST["department_id"];
-        $quizPassword = $_POST["quiz_password"];
-        $scheduledAt = $_POST["scheduled_at"];
-        $totalQuestions = (int)$_POST["total_questions"];
-        $maxScore = (float)$_POST["max_score"];
-        
-        $createdBy = $_SESSION['user_id'];
-        $quizPasswordHash = password_hash($quizPassword, PASSWORD_DEFAULT);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $code = mysqli_real_escape_string($conn, $_POST["code"]);
+    $name = mysqli_real_escape_string($conn, $_POST["name"]);
+    $description = mysqli_real_escape_string($conn, $_POST["description"]);
+    $durationMinutes = (int)$_POST["duration"];
+    $departmentId = (int)$_POST["department_id"];
+    $quizPassword = $_POST["quiz_password"];
+    $scheduledAt = $_POST["scheduled_at"];
+    $totalQuestions = (int)$_POST["total_questions"];
+    $maxScore = (float)$_POST["max_score"];
 
-        $sql = "INSERT INTO exam (code, name, description, department_id, created_by, quiz_password_hash, 
+    $createdBy = $_SESSION['user_id'];
+    $quizPasswordHash = password_hash($quizPassword, PASSWORD_DEFAULT);
+
+    $sql = "INSERT INTO exam (code, name, description, department_id, created_by, quiz_password_hash,
                                   duration_minutes, scheduled_at, total_questions, max_score, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssiisissd", $code, $name, $description, $departmentId, $createdBy, 
-                          $quizPasswordHash, $durationMinutes, $scheduledAt, $totalQuestions, $maxScore);
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param(
+        "sssiisissd",
+        $code,
+        $name,
+        $description,
+        $departmentId,
+        $createdBy,
+        $quizPasswordHash,
+        $durationMinutes,
+        $scheduledAt,
+        $totalQuestions,
+        $maxScore
+    );
 
-        if($stmt->execute()){
-            $message = "New Exam added successfully!";
-            
-            // Redirect based on role
-            if ($_SESSION['role'] == 'Manager') {
-                echo '<script>alert("' . $message . '"); window.location.href = "../dashboards/manager_dashboard.php";</script>';
-            }
-            elseif ($_SESSION['role'] == 'Admin') {
-                echo '<script>alert("' . $message . '"); window.location.href = "../dashboards/admin_dashboard.php";</script>';
-            }
-            elseif  ($_SESSION['role'] == 'Examiner') {
-                echo '<script>alert("' . $message . '"); window.location.href = "../dashboards/examiner_dashboard.php";</script>';
-            }
-            exit;
+    if ($stmt->execute()) {
+        $message = "New Exam added successfully!";
+
+        // Redirect based on role
+        if ($_SESSION['role'] == 'manager') {
+            echo '<script>alert("' . $message . '"); window.location.href = "../dashboards/manager_dashboard.php";</script>';
+        } elseif ($_SESSION['role'] == 'admin') {
+            echo '<script>alert("' . $message . '"); window.location.href = "../dashboards/admin_dashboard.php";</script>';
+        } elseif ($_SESSION['role'] == 'examiner') {
+            echo '<script>alert("' . $message . '"); window.location.href = "../dashboards/examiner_dashboard.php";</script>';
         }
-        else{
-            $error = "Error adding exam: " . $conn->error;
-        }
+        exit;
+    } else {
+        $error = "Error adding exam: " . $conn->error;
     }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Exam</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Add Exam - ExamPro</title>
 </head>
+
 <body>
 
     <!-- Header -->
-    <?php include ("../includes/header.php"); ?>
+    <?php include("../includes/header.php"); ?>
 
     <!-- Add Exam Content -->
     <div class="container mt-xl mb-xl">
-        <div class="card" style="max-width: 700px; margin: 0 auto;">
+        <div class="card">
             <div class="card-header">
                 <h1 class="card-title"><i class="fas fa-plus-circle"></i> Add Exam</h1>
                 <p class="card-subtitle">Create a new examination</p>
@@ -103,22 +111,22 @@
                     <div class="form-group">
                         <label for="department_id" class="form-label">Department</label>
                         <?php
-                            $sql = "SELECT id, name FROM department ORDER BY name";
-                            $result = $conn->query($sql);
-                            if($result && $result->num_rows > 0){
+                        $sql = "SELECT id, name FROM department ORDER BY name";
+                        $result = $conn->query($sql);
+                        if ($result && $result->num_rows > 0) {
                         ?>
                             <select name="department_id" id="department_id" class="form-control" required>
                                 <option value="" disabled selected>Select Department</option>
                                 <?php
-                                    while ($row = $result->fetch_assoc()) {
-                                        echo "<option value=\"" . htmlspecialchars($row['id']) . "\">" . htmlspecialchars($row['name']) . "</option>";
-                                    }
+                                while ($row = $result->fetch_assoc()) {
+                                    echo "<option value=\"" . htmlspecialchars($row['id']) . "\">" . htmlspecialchars($row['name']) . "</option>";
+                                }
                                 ?>
                             </select>
                         <?php
-                            } else {
-                                echo "<p class='text-error'>No departments found.</p>";
-                            }
+                        } else {
+                            echo "<p class='text-error'>No departments found.</p>";
+                        }
                         ?>
                     </div>
 
@@ -148,7 +156,7 @@
                         <input type="number" step="0.01" id="max_score" name="max_score" class="form-control" value="100.00" required>
                     </div>
 
-                    <button type="submit" name="submit" class="btn btn-primary" style="width: 100%;">
+                    <button type="submit" name="submit" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Add Exam
                     </button>
                 </form>
@@ -157,7 +165,8 @@
     </div>
 
     <!-- Footer -->
-    <?php include ("../includes/footer.php"); ?>
+    <?php include("../includes/footer.php"); ?>
 
 </body>
+
 </html>

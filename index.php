@@ -5,7 +5,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
 include('config/config.php');
 
-if (!isset($_SESSION['email'])){
+if (!isset($_SESSION['email'])) {
     header("Location: auth/login.php");
     exit();
 }
@@ -89,16 +89,13 @@ if ($userId) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - ExamPro</title>
-    <link rel="stylesheet" href="styles/theme.css">
-    <link rel="stylesheet" href="styles/style.css">
-    <link rel="stylesheet" href="styles/layout.css">
-    <link rel="stylesheet" href="styles/index.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <?php include("includes/header.php"); ?>
 
@@ -120,13 +117,13 @@ if ($userId) {
                                 <i class="fas fa-pen-to-square"></i>
                                 Take Exam
                             </a>
-                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Staff'): ?>
+                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'staff'): ?>
                                 <a href="dashboards/user_dashboard.php" class="btn btn-secondary btn-lg">
                                     <i class="fas fa-tachometer-alt"></i>
                                     My Dashboard
                                 </a>
                             <?php elseif (isset($_SESSION['role'])): ?>
-                                <a href="dashboards/<?php echo strtolower($_SESSION['role']); ?>_dashboard.php" class="btn btn-secondary btn-lg">
+                                <a href="dashboards/<?php echo $_SESSION['role']; ?>_dashboard.php" class="btn btn-secondary btn-lg">
                                     <i class="fas fa-tachometer-alt"></i>
                                     My Dashboard
                                 </a>
@@ -145,7 +142,7 @@ if ($userId) {
             <div class="container">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                        <div class="stat-icon">
                             <i class="fas fa-clipboard-list"></i>
                         </div>
                         <div class="stat-content">
@@ -154,7 +151,7 @@ if ($userId) {
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon" style="background-color: #D1FAE5; color: var(--secondary);">
+                        <div class="stat-icon">
                             <i class="fas fa-globe"></i>
                         </div>
                         <div class="stat-content">
@@ -163,7 +160,7 @@ if ($userId) {
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon" style="background-color: #FEF3C7; color: var(--warning);">
+                        <div class="stat-icon">
                             <i class="fas fa-tasks"></i>
                         </div>
                         <div class="stat-content">
@@ -172,7 +169,7 @@ if ($userId) {
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon" style="background-color: #FEE2E2; color: var(--error);">
+                        <div class="stat-icon">
                             <i class="fas fa-check-circle"></i>
                         </div>
                         <div class="stat-content">
@@ -186,53 +183,53 @@ if ($userId) {
 
         <!-- Department Exams Section -->
         <?php if (count($departmentExams) > 0): ?>
-        <section class="exams-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-building"></i>
-                        My Department Exams
-                    </h2>
-                    <p class="section-subtitle">Exams available in your department</p>
-                </div>
-                <div class="exams-grid">
-                    <?php foreach ($departmentExams as $exam): ?>
-                    <div class="exam-card">
-                        <div class="exam-card-header">
-                            <h3 class="exam-title"><?php echo htmlspecialchars($exam['name']); ?></h3>
-                            <span class="badge badge-info"><?php echo htmlspecialchars($exam['dept_name']); ?></span>
-                        </div>
-                        <div class="exam-card-body">
-                            <div class="exam-meta">
-                                <div class="exam-meta-item">
-                                    <i class="fas fa-user-tie"></i>
-                                    <span><?php echo htmlspecialchars($exam['first_name'] . ' ' . $exam['last_name']); ?></span>
+            <section class="exams-section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-building"></i>
+                            My Department Exams
+                        </h2>
+                        <p class="section-subtitle">Exams available in your department</p>
+                    </div>
+                    <div class="exams-grid">
+                        <?php foreach ($departmentExams as $exam): ?>
+                            <div class="exam-card">
+                                <div class="exam-card-header">
+                                    <h3 class="exam-title"><?php echo htmlspecialchars($exam['name']); ?></h3>
+                                    <span class="badge badge-info"><?php echo htmlspecialchars($exam['dept_name']); ?></span>
                                 </div>
-                                <div class="exam-meta-item">
-                                    <i class="fas fa-clock"></i>
-                                    <span><?php echo htmlspecialchars($exam['duration_minutes']); ?> min</span>
+                                <div class="exam-card-body">
+                                    <div class="exam-meta">
+                                        <div class="exam-meta-item">
+                                            <i class="fas fa-user-tie"></i>
+                                            <span><?php echo htmlspecialchars($exam['first_name'] . ' ' . $exam['last_name']); ?></span>
+                                        </div>
+                                        <div class="exam-meta-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span><?php echo htmlspecialchars($exam['duration_minutes']); ?> min</span>
+                                        </div>
+                                        <div class="exam-meta-item">
+                                            <i class="fas fa-calendar"></i>
+                                            <span><?php echo $exam['scheduled_at'] ? htmlspecialchars(date('M d, Y', strtotime($exam['scheduled_at']))) : 'Not scheduled'; ?></span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="exam-meta-item">
-                                    <i class="fas fa-calendar"></i>
-                                    <span><?php echo $exam['scheduled_at'] ? htmlspecialchars(date('M d, Y', strtotime($exam['scheduled_at']))) : 'Not scheduled'; ?></span>
+                                <div class="exam-card-footer">
+                                    <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-user-plus"></i>
+                                        Register
+                                    </a>
+                                    <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-outline">
+                                        <i class="fas fa-info-circle"></i>
+                                        View Details
+                                    </a>
                                 </div>
                             </div>
-                        </div>
-                        <div class="exam-card-footer">
-                            <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-primary">
-                                <i class="fas fa-user-plus"></i>
-                                Register
-                            </a>
-                            <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-outline">
-                                <i class="fas fa-info-circle"></i>
-                                View Details
-                            </a>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
                 </div>
-            </div>
-        </section>
+            </section>
         <?php endif; ?>
 
         <!-- General/Available Exams Section -->
@@ -248,38 +245,38 @@ if ($userId) {
                 <div class="exams-grid">
                     <?php if (count($generalExams) > 0): ?>
                         <?php foreach ($generalExams as $exam): ?>
-                        <div class="exam-card">
-                            <div class="exam-card-header">
-                                <h3 class="exam-title"><?php echo htmlspecialchars($exam['name']); ?></h3>
-                                <span class="badge badge-success">General</span>
-                            </div>
-                            <div class="exam-card-body">
-                                <div class="exam-meta">
-                                    <div class="exam-meta-item">
-                                        <i class="fas fa-user-tie"></i>
-                                        <span><?php echo htmlspecialchars($exam['first_name'] . ' ' . $exam['last_name']); ?></span>
-                                    </div>
-                                    <div class="exam-meta-item">
-                                        <i class="fas fa-clock"></i>
-                                        <span><?php echo htmlspecialchars($exam['duration_minutes']); ?> min</span>
-                                    </div>
-                                    <div class="exam-meta-item">
-                                        <i class="fas fa-calendar"></i>
-                                        <span><?php echo $exam['scheduled_at'] ? htmlspecialchars(date('M d, Y', strtotime($exam['scheduled_at']))) : 'Not scheduled'; ?></span>
+                            <div class="exam-card">
+                                <div class="exam-card-header">
+                                    <h3 class="exam-title"><?php echo htmlspecialchars($exam['name']); ?></h3>
+                                    <span class="badge badge-success">General</span>
+                                </div>
+                                <div class="exam-card-body">
+                                    <div class="exam-meta">
+                                        <div class="exam-meta-item">
+                                            <i class="fas fa-user-tie"></i>
+                                            <span><?php echo htmlspecialchars($exam['first_name'] . ' ' . $exam['last_name']); ?></span>
+                                        </div>
+                                        <div class="exam-meta-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span><?php echo htmlspecialchars($exam['duration_minutes']); ?> min</span>
+                                        </div>
+                                        <div class="exam-meta-item">
+                                            <i class="fas fa-calendar"></i>
+                                            <span><?php echo $exam['scheduled_at'] ? htmlspecialchars(date('M d, Y', strtotime($exam['scheduled_at']))) : 'Not scheduled'; ?></span>
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="exam-card-footer">
+                                    <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-secondary">
+                                        <i class="fas fa-user-plus"></i>
+                                        Register
+                                    </a>
+                                    <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-outline">
+                                        <i class="fas fa-info-circle"></i>
+                                        View Details
+                                    </a>
+                                </div>
                             </div>
-                            <div class="exam-card-footer">
-                                <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-secondary">
-                                    <i class="fas fa-user-plus"></i>
-                                    Register
-                                </a>
-                                <a href="exams/registerExam.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-outline">
-                                    <i class="fas fa-info-circle"></i>
-                                    View Details
-                                </a>
-                            </div>
-                        </div>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <div class="empty-state">
@@ -294,51 +291,51 @@ if ($userId) {
 
         <!-- Attended Exams Section -->
         <?php if (count($attendedExams) > 0): ?>
-        <section class="exams-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">
-                        <i class="fas fa-chart-line"></i>
-                        My Completed Exams
-                    </h2>
-                    <p class="section-subtitle">View your exam results and performance</p>
-                </div>
-                <div class="exams-grid">
-                    <?php foreach ($attendedExams as $exam): ?>
-                    <div class="exam-card completed">
-                        <div class="exam-card-header">
-                            <h3 class="exam-title"><?php echo htmlspecialchars($exam['name']); ?></h3>
-                            <span class="badge badge-success">
-                                <?php echo number_format($exam['score'], 2); ?>%
-                            </span>
-                        </div>
-                        <div class="exam-card-body">
-                            <div class="exam-meta">
-                                <div class="exam-meta-item">
-                                    <i class="fas fa-building"></i>
-                                    <span><?php echo htmlspecialchars($exam['dept_name']); ?></span>
+            <section class="exams-section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-chart-line"></i>
+                            My Completed Exams
+                        </h2>
+                        <p class="section-subtitle">View your exam results and performance</p>
+                    </div>
+                    <div class="exams-grid">
+                        <?php foreach ($attendedExams as $exam): ?>
+                            <div class="exam-card completed">
+                                <div class="exam-card-header">
+                                    <h3 class="exam-title"><?php echo htmlspecialchars($exam['name']); ?></h3>
+                                    <span class="badge badge-success">
+                                        <?php echo number_format($exam['score'], 2); ?>%
+                                    </span>
                                 </div>
-                                <div class="exam-meta-item">
-                                    <i class="fas fa-user-tie"></i>
-                                    <span><?php echo htmlspecialchars($exam['first_name'] . ' ' . $exam['last_name']); ?></span>
+                                <div class="exam-card-body">
+                                    <div class="exam-meta">
+                                        <div class="exam-meta-item">
+                                            <i class="fas fa-building"></i>
+                                            <span><?php echo htmlspecialchars($exam['dept_name']); ?></span>
+                                        </div>
+                                        <div class="exam-meta-item">
+                                            <i class="fas fa-user-tie"></i>
+                                            <span><?php echo htmlspecialchars($exam['first_name'] . ' ' . $exam['last_name']); ?></span>
+                                        </div>
+                                        <div class="exam-meta-item">
+                                            <i class="fas fa-trophy"></i>
+                                            <span><?php echo $exam['score'] >= 75 ? 'Pass' : 'Review Required'; ?></span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="exam-meta-item">
-                                    <i class="fas fa-trophy"></i>
-                                    <span><?php echo $exam['score'] >= 75 ? 'Pass' : 'Review Required'; ?></span>
+                                <div class="exam-card-footer">
+                                    <a href="exams/result.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                        View Result
+                                    </a>
                                 </div>
                             </div>
-                        </div>
-                        <div class="exam-card-footer">
-                            <a href="exams/result.php?id=<?php echo $exam['id']; ?>" class="btn btn-sm btn-primary">
-                                <i class="fas fa-eye"></i>
-                                View Result
-                            </a>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
                 </div>
-            </div>
-        </section>
+            </section>
         <?php endif; ?>
 
         <!-- Features Section -->
@@ -350,7 +347,7 @@ if ($userId) {
                 </div>
                 <div class="features-grid">
                     <div class="feature-card">
-                        <div class="feature-icon" style="background-color: var(--primary-light); color: var(--primary);">
+                        <div class="feature-icon">
                             <i class="fas fa-shield-alt"></i>
                         </div>
                         <h3 class="feature-title">Secure & Reliable</h3>
@@ -364,7 +361,7 @@ if ($userId) {
                         </ul>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon" style="background-color: #D1FAE5; color: var(--secondary);">
+                        <div class="feature-icon">
                             <i class="fas fa-laptop-code"></i>
                         </div>
                         <h3 class="feature-title">Easy to Use</h3>
@@ -378,7 +375,7 @@ if ($userId) {
                         </ul>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon" style="background-color: #FEF3C7; color: var(--warning);">
+                        <div class="feature-icon">
                             <i class="fas fa-headset"></i>
                         </div>
                         <h3 class="feature-title">24/7 Support</h3>
@@ -428,4 +425,5 @@ if ($userId) {
 
     <script src="scripts/index.js"></script>
 </body>
+
 </html>

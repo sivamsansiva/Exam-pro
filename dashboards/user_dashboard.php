@@ -6,11 +6,10 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Staff') {
+if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'staff') {
     header("Location: ../auth/login.php");
     exit();
 }
-
 $userId = $_SESSION['user_id'];
 $email = $_SESSION['email'];
 
@@ -97,14 +96,11 @@ $recentActivity = array_slice($pastExams, 0, 3);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Dashboard - ExamPro</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="../styles/style.css">
-    <link rel="stylesheet" href="../styles/layout.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -223,7 +219,7 @@ $recentActivity = array_slice($pastExams, 0, 3);
                     <p style="color: var(--text-muted); margin: 0; font-size: 0.85rem;">Start your registered exams</p>
                 </div>
             </a>
-            <a href="profile.php" class="card" style="text-decoration: none; color: inherit; transition: all 0.3s; cursor: pointer; border: 2px solid transparent;" onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='#f59e0b'; this.style.boxShadow='0 8px 20px rgba(245, 158, 11, 0.2)'" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow=''">
+            <a href="../users/profile.php" class="card" style="text-decoration: none; color: inherit; transition: all 0.3s; cursor: pointer; border: 2px solid transparent;" onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='#f59e0b'; this.style.boxShadow='0 8px 20px rgba(245, 158, 11, 0.2)'" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow=''">
                 <div style="text-align: center; padding: 1.25rem;">
                     <div style="width: 55px; height: 55px; margin: 0 auto 0.75rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
                         <i class="fas fa-user-edit" style="font-size: 1.4rem; color: white;"></i>
@@ -309,73 +305,73 @@ $recentActivity = array_slice($pastExams, 0, 3);
 
         <!-- Upcoming Exams -->
         <?php if (count($upcomingExams) > 0): ?>
-        <div class="card mb-xl">
-            <div class="card-header" style="border-bottom: 2px solid #f3f4f6;">
-                <h2 class="card-title" style="font-size: 1.25rem; font-weight: 600;"><i class="fas fa-calendar-alt"></i> Upcoming Exams</h2>
-                <p class="card-subtitle">Exams scheduled in the near future</p>
-            </div>
-            <div style="padding: 1.25rem;">
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <?php foreach ($upcomingExams as $exam):
-                        $scheduledDate = strtotime($exam['scheduled_at']);
-                        $now = time();
-                        $daysUntil = floor(($scheduledDate - $now) / (60 * 60 * 24));
-                        $hoursUntil = floor(($scheduledDate - $now) / (60 * 60));
-                    ?>
-                        <div class="card" style="border: 1px solid #e5e7eb; border-left: 4px solid #f59e0b;">
-                            <div style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                                <div style="flex: 1; min-width: 200px;">
-                                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                                        <span class="badge badge-warning"><?php echo htmlspecialchars($exam['code']); ?></span>
-                                        <h4 style="margin: 0; font-size: 1.05rem; font-weight: 600;"><?php echo htmlspecialchars($exam['name']); ?></h4>
+            <div class="card mb-xl">
+                <div class="card-header" style="border-bottom: 2px solid #f3f4f6;">
+                    <h2 class="card-title" style="font-size: 1.25rem; font-weight: 600;"><i class="fas fa-calendar-alt"></i> Upcoming Exams</h2>
+                    <p class="card-subtitle">Exams scheduled in the near future</p>
+                </div>
+                <div style="padding: 1.25rem;">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <?php foreach ($upcomingExams as $exam):
+                            $scheduledDate = strtotime($exam['scheduled_at']);
+                            $now = time();
+                            $daysUntil = floor(($scheduledDate - $now) / (60 * 60 * 24));
+                            $hoursUntil = floor(($scheduledDate - $now) / (60 * 60));
+                        ?>
+                            <div class="card" style="border: 1px solid #e5e7eb; border-left: 4px solid #f59e0b;">
+                                <div style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                    <div style="flex: 1; min-width: 200px;">
+                                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                            <span class="badge badge-warning"><?php echo htmlspecialchars($exam['code']); ?></span>
+                                            <h4 style="margin: 0; font-size: 1.05rem; font-weight: 600;"><?php echo htmlspecialchars($exam['name']); ?></h4>
+                                        </div>
+                                        <p style="margin: 0; color: var(--text-muted); font-size: 0.875rem;">
+                                            <i class="fas fa-building"></i> <?php echo htmlspecialchars($exam['dept_name']); ?>
+                                        </p>
                                     </div>
-                                    <p style="margin: 0; color: var(--text-muted); font-size: 0.875rem;">
-                                        <i class="fas fa-building"></i> <?php echo htmlspecialchars($exam['dept_name']); ?>
-                                    </p>
-                                </div>
 
-                                <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-                                    <div>
-                                        <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Date & Time</p>
-                                        <p style="margin: 0.25rem 0 0 0; font-weight: 600;">
-                                            <i class="fas fa-calendar" style="color: #f59e0b;"></i>
-                                            <?php echo htmlspecialchars(date('M d, Y H:i', strtotime($exam['scheduled_at']))); ?>
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Duration</p>
-                                        <p style="margin: 0.25rem 0 0 0; font-weight: 600;">
-                                            <i class="fas fa-clock" style="color: #667eea;"></i>
-                                            <?php echo htmlspecialchars($exam['duration_minutes']); ?> min
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Questions</p>
-                                        <p style="margin: 0.25rem 0 0 0; font-weight: 600;">
-                                            <i class="fas fa-question-circle" style="color: #10b981;"></i>
-                                            <?php echo htmlspecialchars($exam['total_questions']); ?> Qs
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Time Until</p>
-                                        <p style="margin: 0.25rem 0 0 0; font-weight: 600; color: #f59e0b;">
-                                            <i class="fas fa-hourglass-half"></i>
-                                            <?php
+                                    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                                        <div>
+                                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Date & Time</p>
+                                            <p style="margin: 0.25rem 0 0 0; font-weight: 600;">
+                                                <i class="fas fa-calendar" style="color: #f59e0b;"></i>
+                                                <?php echo htmlspecialchars(date('M d, Y H:i', strtotime($exam['scheduled_at']))); ?>
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Duration</p>
+                                            <p style="margin: 0.25rem 0 0 0; font-weight: 600;">
+                                                <i class="fas fa-clock" style="color: #667eea;"></i>
+                                                <?php echo htmlspecialchars($exam['duration_minutes']); ?> min
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Questions</p>
+                                            <p style="margin: 0.25rem 0 0 0; font-weight: 600;">
+                                                <i class="fas fa-question-circle" style="color: #10b981;"></i>
+                                                <?php echo htmlspecialchars($exam['total_questions']); ?> Qs
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Time Until</p>
+                                            <p style="margin: 0.25rem 0 0 0; font-weight: 600; color: #f59e0b;">
+                                                <i class="fas fa-hourglass-half"></i>
+                                                <?php
                                                 if ($daysUntil > 0) {
                                                     echo $daysUntil . ' day' . ($daysUntil > 1 ? 's' : '');
                                                 } else {
                                                     echo $hoursUntil . ' hour' . ($hoursUntil > 1 ? 's' : '');
                                                 }
-                                            ?>
-                                        </p>
+                                                ?>
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
-        </div>
         <?php endif; ?>
 
         <!-- Past Exam Results -->
@@ -456,4 +452,5 @@ $recentActivity = array_slice($pastExams, 0, 3);
 
     <?php include("../includes/footer.php"); ?>
 </body>
+
 </html>

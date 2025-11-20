@@ -46,50 +46,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="../styles/auth.css">
+    <title>Forget Password</title>
 </head>
+
 <body>
-<div class="auth-wrapper" role="main">
-    <div class="auth-card">
-        <header class="auth-header">
-            <h1 class="auth-title">Forgot Password</h1>
-            <p class="auth-subtitle">Enter your NIC and Staff ID to reset your password.</p>
-        </header>
+    <div class="auth-wrapper" role="main">
+        <div class="auth-card">
+            <header class="auth-header">
+                <h1 class="auth-title">Forgot Password</h1>
+                <p class="auth-subtitle">Enter your NIC and Staff ID to reset your password.</p>
+            </header>
 
-        <?php if ($errors): ?>
-            <div class="alert alert-error" role="alert">
-                <ul class="alert-list">
-                    <?php foreach ($errors as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        <?php endif; ?>
+            <?php if ($errors): ?>
+                <div class="alert alert-error" role="alert">
+                    <ul class="alert-list">
+                        <?php foreach ($errors as $error): ?>
+                            <li><?php echo htmlspecialchars($error); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
 
-        <form method="post" class="auth-form">
-            <div class="form-field">
-                <label for="nic">NIC</label>
-                <input type="text" id="nic" name="nic" value="<?php echo htmlspecialchars($nic); ?>" required autofocus>
-            </div>
+            <form method="post" class="auth-form">
+                <div class="form-field">
+                    <label for="nic">NIC</label>
+                    <input type="text" id="nic" name="nic" value="<?php echo htmlspecialchars($nic); ?>" required autofocus>
+                </div>
 
-            <div class="form-field">
-                <label for="staffId">Staff ID</label>
-                <input type="text" id="staffId" name="staffId" value="<?php echo htmlspecialchars($staffId); ?>" required>
-            </div>
+                <div class="form-field">
+                    <label for="staffId">Staff ID</label>
+                    <input type="text" id="staffId" name="staffId" value="<?php echo htmlspecialchars($staffId); ?>" required>
+                </div>
 
-            <button type="submit" class="auth-button">Verify Identity</button>
+                <button type="submit" class="auth-button">Verify Identity</button>
 
-            <div class="auth-links">
-                <span>Remember your password? <a href="login.php">Sign in</a></span>
-            </div>
-        </form>
+                <div class="auth-links">
+                    <span>Remember your password? <a href="login.php">Sign in</a></span>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-<script src="../scripts/auth.js" defer></script>
+    <script src="../scripts/auth.js" defer></script>
 </body>
+
 </html>

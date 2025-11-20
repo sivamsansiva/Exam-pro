@@ -9,18 +9,18 @@ if (session_status() == PHP_SESSION_NONE) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy & Policy</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Privacy Policy - ExamPro</title>
 </head>
+
 <body>
 
     <!-- Header -->
     <?php
-        include ("../includes/header.php");
+    include("../includes/header.php");
     ?>
 
     <!-- Privacy & Policy Page Content -->
@@ -43,7 +43,7 @@ if (session_status() == PHP_SESSION_NONE) {
                 <div class="mb-4">
                     <h3 class="card-title">Information We Collect</h3>
                     <p>We collect personal data when you register for and use our Online Examination System. This includes:</p>
-                    <ul style="list-style-position: inside; margin-left: 1rem;">
+                    <ul>
                         <li><strong>Personal Identification Information:</strong> Name, Employee ID, Department, Job Title, Email Address.</li>
                         <li><strong>Exam Information:</strong> Exam scores, answers, performance analytics, and history.</li>
                         <li><strong>Usage Data:</strong> Device information, IP address, browser type, and interaction logs with the system.</li>
@@ -53,7 +53,7 @@ if (session_status() == PHP_SESSION_NONE) {
                 <div class="mb-4">
                     <h3 class="card-title">How We Use Your Information</h3>
                     <p>We use the information collected for the following purposes:</p>
-                    <ul style="list-style-position: inside; margin-left: 1rem;">
+                    <ul>
                         <li>To facilitate and manage the online examination process.</li>
                         <li>To monitor and evaluate employee performance.</li>
                         <li>To provide feedback and generate reports.</li>
@@ -64,7 +64,7 @@ if (session_status() == PHP_SESSION_NONE) {
                 <div class="mb-4">
                     <h3 class="card-title">Data Sharing and Disclosure</h3>
                     <p>We will not share your personal information with third parties except:</p>
-                    <ul style="list-style-position: inside; margin-left: 1rem;">
+                    <ul>
                         <li>With authorized personnel within our company for HR and training purposes.</li>
                         <li>When required by law or to comply with legal obligations.</li>
                     </ul>
@@ -73,7 +73,7 @@ if (session_status() == PHP_SESSION_NONE) {
                 <div class="mb-4">
                     <h3 class="card-title">Data Security</h3>
                     <p>We take the security of your data seriously and implement the following measures:</p>
-                    <ul style="list-style-position: inside; margin-left: 1rem;">
+                    <ul>
                         <li>Encryption of sensitive information.</li>
                         <li>Secure access protocols (password protection, two-factor authentication).</li>
                         <li>Regular system audits and updates to ensure the safety of stored data.</li>
@@ -84,7 +84,7 @@ if (session_status() == PHP_SESSION_NONE) {
                 <div class="mb-4">
                     <h3 class="card-title">Employee Rights</h3>
                     <p>As an employee, you have the following rights concerning your data:</p>
-                    <ul style="list-style-position: inside; margin-left: 1rem;">
+                    <ul>
                         <li><strong>Access:</strong> You can request a copy of your personal data at any time.</li>
                         <li><strong>Correction:</strong> You can ask us to correct or update your information.</li>
                         <li><strong>Deletion:</strong> You may request the deletion of your data, subject to HR and company policies.</li>
@@ -119,8 +119,9 @@ if (session_status() == PHP_SESSION_NONE) {
 
     <!-- Footer -->
     <?php
-        include ("../includes/footer.php");
+    include("../includes/footer.php");
     ?>
 
 </body>
+
 </html>

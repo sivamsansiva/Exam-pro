@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Staff'){
+if (!isset($_SESSION['email']) || $_SESSION['role'] == 'Staff') {
     header("Location: ../auth/login.php");
     exit();
 }
@@ -53,15 +53,36 @@ if (isset($_POST['submit'])) {
                 duration_minutes=?, scheduled_at=?, total_questions=?, max_score=?, updated_at=NOW()
                 WHERE id=?";
         $stmt = $conn->prepare($sql2);
-        $stmt->bind_param("sssisssidi", $code, $name, $description, $departmentId, $quizPasswordHash,
-                         $durationMinutes, $scheduledAt, $totalQuestions, $maxScore, $eid);
+        $stmt->bind_param(
+            "sssisssidi",
+            $code,
+            $name,
+            $description,
+            $departmentId,
+            $quizPasswordHash,
+            $durationMinutes,
+            $scheduledAt,
+            $totalQuestions,
+            $maxScore,
+            $eid
+        );
     } else {
         $sql2 = "UPDATE exam SET code=?, name=?, description=?, department_id=?,
                 duration_minutes=?, scheduled_at=?, total_questions=?, max_score=?, updated_at=NOW()
                 WHERE id=?";
         $stmt = $conn->prepare($sql2);
-        $stmt->bind_param("ssisissdi", $code, $name, $description, $departmentId,
-                         $durationMinutes, $scheduledAt, $totalQuestions, $maxScore, $eid);
+        $stmt->bind_param(
+            "ssisissdi",
+            $code,
+            $name,
+            $description,
+            $departmentId,
+            $durationMinutes,
+            $scheduledAt,
+            $totalQuestions,
+            $maxScore,
+            $eid
+        );
     }
 
     if ($stmt->execute()) {
@@ -83,19 +104,19 @@ if (isset($_POST['submit'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update Exam</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Update Exam - ExamPro</title>
 </head>
+
 <body>
     <?php
-        include ('../includes/header.php')
+    include('../includes/header.php')
     ?>
     <div class="container mt-xl mb-xl">
-        <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card">
             <div class="card-header">
                 <h1 class="card-title"><i class="fas fa-edit"></i> Update Exam</h1>
                 <p class="card-subtitle">Modify exam details</p>
@@ -104,7 +125,7 @@ if (isset($_POST['submit'])) {
                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) . '?updateid=' . htmlspecialchars($eid); ?>" method="post">
                     <div class="form-group">
                         <label for="eid" class="form-label">Exam ID</label>
-                        <input type="text" id="eid" class="form-control" value="<?php echo htmlspecialchars($eid); ?>" disabled style="background-color: #f0f0f0;">
+                        <input type="text" id="eid" class="form-control" value="<?php echo htmlspecialchars($eid); ?>" disabled>
                     </div>
 
                     <div class="form-group">
@@ -125,23 +146,23 @@ if (isset($_POST['submit'])) {
                     <div class="form-group">
                         <label for="department_id" class="form-label">Department</label>
                         <?php
-                            $deptSql = "SELECT id, name FROM department ORDER BY name";
-                            $deptResult = $conn->query($deptSql);
-                            if($deptResult && $deptResult->num_rows > 0){
+                        $deptSql = "SELECT id, name FROM department ORDER BY name";
+                        $deptResult = $conn->query($deptSql);
+                        if ($deptResult && $deptResult->num_rows > 0) {
                         ?>
                             <select name="department_id" id="department_id" class="form-control" required>
                                 <option value="">Select Department</option>
                                 <?php
-                                    while ($dept = $deptResult->fetch_assoc()) {
-                                        $selected = ($departmentId == $dept['id']) ? 'selected' : '';
-                                        echo "<option value=\"" . htmlspecialchars($dept['id']) . "\" $selected>" . htmlspecialchars($dept['name']) . "</option>";
-                                    }
+                                while ($dept = $deptResult->fetch_assoc()) {
+                                    $selected = ($departmentId == $dept['id']) ? 'selected' : '';
+                                    echo "<option value=\"" . htmlspecialchars($dept['id']) . "\" $selected>" . htmlspecialchars($dept['name']) . "</option>";
+                                }
                                 ?>
                             </select>
                         <?php
-                            } else {
-                                echo "<p class='text-error'>No departments found.</p>";
-                            }
+                        } else {
+                            echo "<p class='text-error'>No departments found.</p>";
+                        }
                         ?>
                     </div>
 
@@ -171,13 +192,14 @@ if (isset($_POST['submit'])) {
                         <input type="number" step="0.01" id="max_score" name="max_score" class="form-control" value="<?php echo htmlspecialchars($maxScore); ?>" required>
                     </div>
 
-                    <button type="submit" name="submit" class="btn btn-primary" style="width: 100%;">Update Exam</button>
+                    <button type="submit" name="submit" class="btn btn-primary">Update Exam</button>
                 </form>
             </div>
         </div>
     </div>
-<?php
-    include ('../includes/footer.php');
-?>
+    <?php
+    include('../includes/footer.php');
+    ?>
 </body>
+
 </html>

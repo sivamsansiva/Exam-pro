@@ -1,91 +1,38 @@
 <?php
-    include('../config/config.php');
+include('../config/config.php');
 
-    if (session_status() == PHP_SESSION_NONE) {
-        session_start();
-    }
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
-    if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'Admin'){
-        header("Location: ../auth/login.php");
-        exit();
-    }
+if (!isset($_SESSION['email']) || $_SESSION['role'] !== 'admin') {
+    header("Location: ../auth/login.php");
+    exit();
+}
 
-    // Handle Profile Update
-    $updateSuccess = false;
-    if (isset($_POST['update_profile'])) {
-        $userId = $_SESSION['user_id'];
-        $firstName = mysqli_real_escape_string($conn, $_POST["first_name"]);
-        $lastName = mysqli_real_escape_string($conn, $_POST["last_name"]);
-        $email = mysqli_real_escape_string($conn, $_POST["email"]);
-        $dob = mysqli_real_escape_string($conn, $_POST["dob"]);
-        $gender = mysqli_real_escape_string($conn, $_POST["gender"]);
-        $phoneNo = mysqli_real_escape_string($conn, $_POST['phone']);
+$userId = $_SESSION['user_id'];
 
-        $sql2 = "UPDATE users SET first_name=?, last_name=?, gender=?, email=?, dob=?, updated_at=NOW() WHERE id=?";
-        $stmt = $conn->prepare($sql2);
-        $stmt->bind_param("sssssi", $firstName, $lastName, $gender, $email, $dob, $userId);
-        $result = $stmt->execute();
+// Fetch Admin Details for display
+$sql1 = "SELECT first_name, last_name FROM users WHERE id=? AND role='admin'";
+$stmt = $conn->prepare($sql1);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_assoc();
 
-        // Update phone number
-        $checkPhone = "SELECT * FROM user_phone WHERE user_id=?";
-        $stmt = $conn->prepare($checkPhone);
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        $phoneResult = $stmt->get_result();
-
-        if ($phoneResult->num_rows > 0) {
-            $updatePhone = "UPDATE user_phone SET phone=? WHERE user_id=?";
-            $stmt = $conn->prepare($updatePhone);
-            $stmt->bind_param("si", $phoneNo, $userId);
-            $stmt->execute();
-        } else {
-            $insertPhone = "INSERT INTO user_phone (user_id, phone) VALUES (?, ?)";
-            $stmt = $conn->prepare($insertPhone);
-            $stmt->bind_param("is", $userId, $phoneNo);
-            $stmt->execute();
-        }
-
-        if ($result) {
-            $updateSuccess = true;
-        }
-    }
-
-    // Fetch Admin Details
-    $userId = $_SESSION['user_id'];
-    $sql1 = "SELECT * FROM users WHERE id=? AND role='admin'";
-    $stmt = $conn->prepare($sql1);
-    $stmt->bind_param("i", $userId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-
-    $firstName = $row['first_name'] ?? '';
-    $lastName = $row['last_name'] ?? '';
-    $dob = $row['dob'] ?? '';
-    $email = $row['email'] ?? '';
-    $gender = $row['gender'] ?? '';
-    $nic = $row['nic'] ?? '';
-
-    // Fetch Admin Phone
-    $sql1 = "SELECT phone FROM user_phone WHERE user_id=? LIMIT 1";
-    $stmt = $conn->prepare($sql1);
-    $stmt->bind_param("i", $userId);
-    $stmt->execute();
-    $phoneResult = $stmt->get_result();
-    $phoneRow = $phoneResult->fetch_assoc();
-    $phoneNo = $phoneRow['phone'] ?? '';
+$firstName = $row['first_name'] ?? '';
+$lastName = $row['last_name'] ?? '';
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - ExamPro</title>
-    <link rel="stylesheet" href="../styles/theme.css">
-    <link rel="stylesheet" href="../styles/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <?php include('../includes/header.php'); ?>
 
@@ -95,81 +42,41 @@
             <p>Manage exams, users, and system settings.</p>
         </div>
 
-        <?php if ($updateSuccess): ?>
+        <?php if (isset($_SESSION['delete_success'])): ?>
             <div class="alert alert-success mb-lg">
-                <i class="fas fa-check-circle"></i> Profile updated successfully!
+                <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_SESSION['delete_success']);
+                                                    unset($_SESSION['delete_success']); ?>
             </div>
         <?php endif; ?>
 
-        <div class="grid-2">
-            <!-- Admin Profile Section -->
-            <div class="card mb-xl">
-                <div class="card-header">
-                    <h2 class="card-title"><i class="fas fa-user-shield"></i> Admin Profile</h2>
-                </div>
-                <form method="post" id="profile-form">
-                    <div class="form-group">
-                        <label class="form-label">First Name</label>
-                        <input type="text" name="first_name" class="form-control" value="<?php echo htmlspecialchars($firstName); ?>" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Last Name</label>
-                        <input type="text" name="last_name" class="form-control" value="<?php echo htmlspecialchars($lastName); ?>" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Gender</label>
-                        <div style="display: flex; gap: 1.5rem;">
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="radio" name="gender" value="male" <?php if ($gender == "male") echo "checked"; ?>> Male
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <input type="radio" name="gender" value="female" <?php if ($gender == "female") echo "checked"; ?>> Female
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Mobile Number</label>
-                        <input type="tel" name="phone" class="form-control" pattern="[0-9]{10}" value="<?php echo htmlspecialchars($phoneNo); ?>" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($email); ?>" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Date of Birth</label>
-                        <input type="date" name="dob" class="form-control" value="<?php echo htmlspecialchars($dob); ?>" required>
-                    </div>
-
-                    <button type="submit" name="update_profile" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Update Profile
-                    </button>
-                </form>
+        <?php if (isset($_SESSION['delete_error'])): ?>
+            <div class="alert alert-error mb-lg">
+                <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($_SESSION['delete_error']);
+                                                            unset($_SESSION['delete_error']); ?>
             </div>
+        <?php endif; ?>
 
-            <!-- Quick Stats or Actions -->
-            <div class="card mb-xl">
-                <div class="card-header">
-                    <h2 class="card-title"><i class="fas fa-bolt"></i> Quick Actions</h2>
-                </div>
-                <div style="display: grid; gap: 1rem;">
-                    <a href="../exams/addExam.php" class="btn btn-secondary" style="justify-content: flex-start;">
-                        <i class="fas fa-plus-circle"></i> Add New Exam
-                    </a>
-                    <a href="#manage-exams" class="btn btn-outline" style="justify-content: flex-start;">
-                        <i class="fas fa-list"></i> Manage Exams
-                    </a>
-                    <a href="#staff" class="btn btn-outline" style="justify-content: flex-start;">
-                        <i class="fas fa-user-tie"></i> Manage Users
-                    </a>
-                    <a href="#messages" class="btn btn-outline" style="justify-content: flex-start;">
-                        <i class="fas fa-envelope"></i> View Messages
-                    </a>
-                </div>
+        <!-- Quick Actions Card -->
+        <div class="card mb-xl">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-bolt"></i> Quick Actions</h2>
+            </div>
+            <div>
+                <a href="../users/profile.php" class="btn btn-primary">
+                    <i class="fas fa-user-circle"></i> My Profile
+                </a>
+                <a href="../exams/addExam.php" class="btn btn-secondary">
+                    <i class="fas fa-plus-circle"></i> Add New Exam
+                </a>
+                <a href="#manage-exams" class="btn btn-outline">
+                    <i class="fas fa-list"></i> Manage Exams
+                </a>
+                <a href="#staff" class="btn btn-outline">
+                    <i class="fas fa-user-tie"></i> Manage Users
+                </a>
+                <a href="#messages" class="btn btn-outline">
+                    <i class="fas fa-envelope"></i> View Messages
+                </a>
             </div>
         </div>
 
@@ -193,7 +100,7 @@
                     </thead>
                     <tbody>
                         <?php
-                        $sql = "SELECT e.id, e.code, e.name, e.duration_minutes, e.scheduled_at, 
+                        $sql = "SELECT e.id, e.code, e.name, e.duration_minutes, e.scheduled_at,
                                        u.first_name, u.last_name, d.name as dept_name
                                 FROM exam e
                                 LEFT JOIN users u ON e.created_by = u.id
@@ -335,4 +242,5 @@
 
     <?php include("../includes/footer.php"); ?>
 </body>
+
 </html>
