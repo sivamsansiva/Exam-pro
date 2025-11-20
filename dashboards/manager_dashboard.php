@@ -34,12 +34,12 @@
         $stmt->close();
 
         if ($phoneResult->num_rows > 0) {
-            $stmt = $conn->prepare("UPDATE user_phone SET phone_number=? WHERE user_id=?");
+            $stmt = $conn->prepare("UPDATE user_phone SET phone=? WHERE user_id=?");
             $stmt->bind_param("si", $phoneNo, $userId);
             $stmt->execute();
             $stmt->close();
         } else {
-            $stmt = $conn->prepare("INSERT INTO user_phone (user_id, phone_number) VALUES (?, ?)");
+            $stmt = $conn->prepare("INSERT INTO user_phone (user_id, phone) VALUES (?, ?)");
             $stmt->bind_param("is", $userId, $phoneNo);
             $stmt->execute();
             $stmt->close();
@@ -66,13 +66,13 @@
     $gender = $row['gender'] ?? '';
 
     // Fetch Manager Phone
-    $stmt = $conn->prepare("SELECT phone_number FROM user_phone WHERE user_id=? LIMIT 1");
+    $stmt = $conn->prepare("SELECT phone FROM user_phone WHERE user_id=? LIMIT 1");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $phoneResult = $stmt->get_result();
     $phoneRow = $phoneResult->fetch_assoc();
     $stmt->close();
-    $phoneNo = $phoneRow['phone_number'] ?? '';
+    $phoneNo = $phoneRow['phone'] ?? '';
 
     // Fetch Statistics
     $totalExamsQuery = "SELECT COUNT(*) as total FROM exam";

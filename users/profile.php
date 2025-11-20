@@ -30,14 +30,14 @@ $userData = $result->fetch_assoc();
 $stmt->close();
 
 // Fetch phone number
-$stmt = $conn->prepare("SELECT phone_number FROM user_phone WHERE user_id = ? LIMIT 1");
+$stmt = $conn->prepare("SELECT phone FROM user_phone WHERE user_id = ? LIMIT 1");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $result = $stmt->get_result();
 $phoneRow = $result->fetch_assoc();
 $stmt->close();
 
-$phoneNo = $phoneRow['phone_number'] ?? '';
+$phoneNo = $phoneRow['phone'] ?? '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
         $stmt->close();
 
         // Update or insert phone number
-        $stmt = $conn->prepare("SELECT id FROM user_phone WHERE user_id = ? LIMIT 1");
+        $stmt = $conn->prepare("SELECT user_id FROM user_phone WHERE user_id = ? LIMIT 1");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
         $phoneResult = $stmt->get_result();
@@ -74,13 +74,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
 
         if ($phoneResult->num_rows > 0) {
             // Update existing phone
-            $stmt = $conn->prepare("UPDATE user_phone SET phone_number = ? WHERE user_id = ?");
+            $stmt = $conn->prepare("UPDATE user_phone SET phone = ? WHERE user_id = ?");
             $stmt->bind_param("si", $phone, $userId);
             $stmt->execute();
             $stmt->close();
         } else {
             // Insert new phone
-            $stmt = $conn->prepare("INSERT INTO user_phone (user_id, phone_number) VALUES (?, ?)");
+            $stmt = $conn->prepare("INSERT INTO user_phone (user_id, phone) VALUES (?, ?)");
             $stmt->bind_param("is", $userId, $phone);
             $stmt->execute();
             $stmt->close();

@@ -11,19 +11,21 @@
     }
 
     $userId = $_SESSION['user_id'] ?? null;
+    $userDepartment = $_SESSION['department'] ?? null;
 
     // Get exam details if ID is provided
     $examDetails = null;
     $selectedExamId = isset($_GET['id']) ? (int)$_GET['id'] : null;
     if ($selectedExamId) {
-        $examQuery = "SELECT e.id, e.code, e.name, e.description, e.duration_minutes, e.scheduled_at, e.total_questions, e.max_score,
+        $examQuery = "SELECT e.id, e.code, e.name, e.description, e.duration_minutes, e.scheduled_at,
+                             e.total_questions, e.max_score, e.department_id,
                              u.first_name, u.last_name, d.name as dept_name
                       FROM exam e
                       JOIN users u ON e.created_by = u.id
-                      JOIN department d ON e.department_id = d.id
-                      WHERE e.id = ?";
+                      LEFT JOIN department d ON e.department_id = d.id
+                      WHERE e.id = ? AND (e.department_id = ? OR e.department_id IS NULL)";
         $stmt = $conn->prepare($examQuery);
-        $stmt->bind_param("i", $selectedExamId);
+        $stmt->bind_param("ii", $selectedExamId, $userDepartment);
         $stmt->execute();
         $examDetails = $stmt->get_result()->fetch_assoc();
     }
@@ -35,43 +37,55 @@
     if ($_SERVER["REQUEST_METHOD"] == "POST" && $userId) {
         $examId = (int)$_POST['exam_id'];
 
-        // Check if already registered
-        $check_query = "SELECT * FROM exam_registration WHERE exam_id = ? AND user_id = ?";
-        $stmt = $conn->prepare($check_query);
-        $stmt->bind_param("ii", $examId, $userId);
+        // Verify user can register for this exam (department or general exam only)
+        $verifyQuery = "SELECT id FROM exam WHERE id = ? AND (department_id = ? OR department_id IS NULL)";
+        $stmt = $conn->prepare($verifyQuery);
+        $stmt->bind_param("ii", $examId, $userDepartment);
         $stmt->execute();
-        $check_result = $stmt->get_result();
+        $verifyResult = $stmt->get_result();
 
-        if ($check_result && $check_result->num_rows > 0) {
-            $registration = $check_result->fetch_assoc();
-            if ($registration['status'] == 'registered') {
-                $message = "You are already registered for this exam!";
-                $messageType = "warning";
+        if ($verifyResult->num_rows === 0) {
+            $message = "You cannot register for this exam. Only exams from your department or general exams are allowed.";
+            $messageType = "error";
+        } else {
+            // Check if already registered
+            $check_query = "SELECT * FROM exam_registration WHERE exam_id = ? AND user_id = ?";
+            $stmt = $conn->prepare($check_query);
+            $stmt->bind_param("ii", $examId, $userId);
+            $stmt->execute();
+            $check_result = $stmt->get_result();
+
+            if ($check_result && $check_result->num_rows > 0) {
+                $registration = $check_result->fetch_assoc();
+                if ($registration['status'] == 'registered') {
+                    $message = "You are already registered for this exam!";
+                    $messageType = "warning";
+                } else {
+                    // Update cancelled to registered
+                    $update_query = "UPDATE exam_registration SET status = 'registered', registered_at = NOW() WHERE exam_id = ? AND user_id = ?";
+                    $stmt = $conn->prepare($update_query);
+                    $stmt->bind_param("ii", $examId, $userId);
+                    if ($stmt->execute()) {
+                        $message = "Successfully re-registered for the exam!";
+                        $messageType = "success";
+                    } else {
+                        $message = "Error re-registering for exam: " . $conn->error;
+                        $messageType = "error";
+                    }
+                }
             } else {
-                // Update cancelled to registered
-                $update_query = "UPDATE exam_registration SET status = 'registered', registered_at = NOW() WHERE exam_id = ? AND user_id = ?";
-                $stmt = $conn->prepare($update_query);
+                // Register for exam
+                $register_query = "INSERT INTO exam_registration (exam_id, user_id, registered_at, status) VALUES (?, ?, NOW(), 'registered')";
+                $stmt = $conn->prepare($register_query);
                 $stmt->bind_param("ii", $examId, $userId);
+
                 if ($stmt->execute()) {
-                    $message = "Successfully re-registered for the exam!";
+                    $message = "Successfully registered for the exam!";
                     $messageType = "success";
                 } else {
-                    $message = "Error re-registering for exam: " . $conn->error;
+                    $message = "Error registering for exam: " . $conn->error;
                     $messageType = "error";
                 }
-            }
-        } else {
-            // Register for exam
-            $register_query = "INSERT INTO exam_registration (exam_id, user_id, registered_at, status) VALUES (?, ?, NOW(), 'registered')";
-            $stmt = $conn->prepare($register_query);
-            $stmt->bind_param("ii", $examId, $userId);
-
-            if ($stmt->execute()) {
-                $message = "Successfully registered for the exam!";
-                $messageType = "success";
-            } else {
-                $message = "Error registering for exam: " . $conn->error;
-                $messageType = "error";
             }
         }
     }
@@ -106,10 +120,6 @@
                             <div class="form-control" style="background-color: #f0f0f0;"><?php echo htmlspecialchars($examDetails['name']); ?></div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label"><i class="fas fa-hashtag"></i> Exam Code</label>
-                            <div class="form-control" style="background-color: #f0f0f0;"><?php echo htmlspecialchars($examDetails['code']); ?></div>
-                        </div>
-                        <div class="form-group">
                             <label class="form-label"><i class="fas fa-clock"></i> Duration</label>
                             <div class="form-control" style="background-color: #f0f0f0;"><?php echo htmlspecialchars($examDetails['duration_minutes']); ?> minutes</div>
                         </div>
@@ -119,7 +129,9 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label"><i class="fas fa-building"></i> Department</label>
-                            <div class="form-control" style="background-color: #f0f0f0;"><?php echo htmlspecialchars($examDetails['dept_name']); ?></div>
+                            <div class="form-control" style="background-color: #f0f0f0;">
+                                <?php echo $examDetails['dept_name'] ? htmlspecialchars($examDetails['dept_name']) : 'General (All Departments)'; ?>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label"><i class="fas fa-calendar"></i> Scheduled At</label>
@@ -155,8 +167,17 @@
                         <div class="form-group">
                             <label for="exam" class="form-label">Select Exam</label>
                             <?php
-                                $sql = "SELECT id, code, name FROM exam ORDER BY scheduled_at DESC, name";
-                                $result = $conn->query($sql);
+                                // Only show exams from user's department or general exams (department_id IS NULL)
+                                $sql = "SELECT e.id, e.code, e.name, e.department_id, d.name as dept_name
+                                        FROM exam e
+                                        LEFT JOIN department d ON e.department_id = d.id
+                                        WHERE e.department_id = ? OR e.department_id IS NULL
+                                        ORDER BY e.scheduled_at DESC, e.name";
+                                $stmt = $conn->prepare($sql);
+                                $stmt->bind_param("i", $userDepartment);
+                                $stmt->execute();
+                                $result = $stmt->get_result();
+
                                 if($result && $result->num_rows > 0){
                             ?>
                             <select name="exam_id" id="exam" class="form-control" required onchange="if(this.value) window.location.href='registerExam.php?id=' + this.value">
@@ -164,13 +185,15 @@
                                 <?php
                                     while ($row = $result->fetch_assoc()) {
                                         $selected = ($examDetails && $examDetails['id'] == $row['id']) ? 'selected' : '';
-                                        echo "<option value=\"" . htmlspecialchars($row['id']) . "\" $selected>" . htmlspecialchars($row['code'] . ' - ' . $row['name']) . "</option>";
+                                        $deptLabel = $row['dept_name'] ? $row['dept_name'] : 'General';
+                                        echo "<option value=\"" . htmlspecialchars($row['id']) . "\" $selected>" .
+                                             htmlspecialchars($row['name']) . " (" . htmlspecialchars($deptLabel) . ")</option>";
                                     }
                                 ?>
                             </select>
                             <?php
                                 } else {
-                                    echo "<p class='text-error'>No exams available.</p>";
+                                    echo "<p class='text-error'>No exams available for your department.</p>";
                                 }
                             ?>
                         </div>

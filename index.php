@@ -24,7 +24,7 @@ $stmt->execute();
 $userResult = $stmt->get_result();
 $userData = $userResult->fetch_assoc();
 
-// Fetch department exams (exams from user's department)
+// Fetch department exams (exams from user's department only)
 $departmentExams = [];
 if ($userDepartment) {
     $deptExamQuery = "SELECT e.id, e.code, e.name, e.description, e.duration_minutes, e.scheduled_at,
@@ -40,12 +40,13 @@ if ($userDepartment) {
     $departmentExams = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 
-// Fetch general exams (all exams)
+// Fetch general/common exams (exams with no specific department - available to all)
+$generalExams = [];
 $generalExamQuery = "SELECT e.id, e.code, e.name, e.description, e.duration_minutes, e.scheduled_at,
-                            u.first_name, u.last_name, u.email as examiner_email, d.name as dept_name
+                            u.first_name, u.last_name, u.email as examiner_email
                      FROM exam e
                      JOIN users u ON e.created_by = u.id
-                     JOIN department d ON e.department_id = d.id
+                     WHERE e.department_id IS NULL
                      ORDER BY e.scheduled_at DESC, e.id DESC
                      LIMIT 6";
 $generalExams = $conn->query($generalExamQuery)->fetch_all(MYSQLI_ASSOC);
@@ -93,6 +94,8 @@ if ($userId) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - ExamPro</title>
     <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="styles/layout.css">
     <link rel="stylesheet" href="styles/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -210,8 +213,8 @@ if ($userId) {
                                     <span><?php echo htmlspecialchars($exam['duration_minutes']); ?> min</span>
                                 </div>
                                 <div class="exam-meta-item">
-                                    <i class="fas fa-hashtag"></i>
-                                    <span>Code: <?php echo htmlspecialchars($exam['code']); ?></span>
+                                    <i class="fas fa-calendar"></i>
+                                    <span><?php echo $exam['scheduled_at'] ? htmlspecialchars(date('M d, Y', strtotime($exam['scheduled_at']))) : 'Not scheduled'; ?></span>
                                 </div>
                             </div>
                         </div>
@@ -238,9 +241,9 @@ if ($userId) {
                 <div class="section-header">
                     <h2 class="section-title">
                         <i class="fas fa-list-alt"></i>
-                        All Available Exams
+                        Common Exams
                     </h2>
-                    <p class="section-subtitle">Browse all exams across departments</p>
+                    <p class="section-subtitle">General exams available to all departments</p>
                 </div>
                 <div class="exams-grid">
                     <?php if (count($generalExams) > 0): ?>
@@ -248,7 +251,7 @@ if ($userId) {
                         <div class="exam-card">
                             <div class="exam-card-header">
                                 <h3 class="exam-title"><?php echo htmlspecialchars($exam['name']); ?></h3>
-                                <span class="badge badge-success"><?php echo htmlspecialchars($exam['dept_name']); ?></span>
+                                <span class="badge badge-success">General</span>
                             </div>
                             <div class="exam-card-body">
                                 <div class="exam-meta">
@@ -261,8 +264,8 @@ if ($userId) {
                                         <span><?php echo htmlspecialchars($exam['duration_minutes']); ?> min</span>
                                     </div>
                                     <div class="exam-meta-item">
-                                        <i class="fas fa-hashtag"></i>
-                                        <span>Code: <?php echo htmlspecialchars($exam['code']); ?></span>
+                                        <i class="fas fa-calendar"></i>
+                                        <span><?php echo $exam['scheduled_at'] ? htmlspecialchars(date('M d, Y', strtotime($exam['scheduled_at']))) : 'Not scheduled'; ?></span>
                                     </div>
                                 </div>
                             </div>

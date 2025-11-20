@@ -92,6 +92,23 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="user-dropdown">
+                        <?php if ($userRole === 'Staff'): ?>
+                            <a href="/Exam-pro/dashboards/user_dashboard.php" class="user-dropdown-link">
+                                <i class="fas fa-tachometer-alt"></i>My Dashboard
+                            </a>
+                        <?php elseif ($userRole === 'Admin'): ?>
+                            <a href="/Exam-pro/dashboards/admin_dashboard.php" class="user-dropdown-link">
+                                <i class="fas fa-tachometer-alt"></i>Admin Dashboard
+                            </a>
+                        <?php elseif ($userRole === 'Manager'): ?>
+                            <a href="/Exam-pro/dashboards/manager_dashboard.php" class="user-dropdown-link">
+                                <i class="fas fa-tachometer-alt"></i>Manager Dashboard
+                            </a>
+                        <?php elseif ($userRole === 'Examiner'): ?>
+                            <a href="/Exam-pro/dashboards/examiner_dashboard.php" class="user-dropdown-link">
+                                <i class="fas fa-tachometer-alt"></i>Examiner Dashboard
+                            </a>
+                        <?php endif; ?>
                         <a href="/Exam-pro/users/profile.php" class="user-dropdown-link">
                             <i class="fas fa-user"></i>My Profile
                         </a>
