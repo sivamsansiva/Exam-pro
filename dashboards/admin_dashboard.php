@@ -31,15 +31,64 @@ $lastName = $row['last_name'] ?? '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - ExamPro</title>
+    <link rel="stylesheet" href="../styles/core.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-accent-600) 100%);
+            color: white;
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--spacing-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .dashboard-header h1 {
+            margin: 0 0 var(--spacing-xs) 0;
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+        }
+
+        .dashboard-header p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: var(--font-size-base);
+        }
+
+        .card-header {
+            background: linear-gradient(to right, var(--color-secondary-50), white);
+            border-bottom: 2px solid var(--color-secondary-100);
+            padding: var(--spacing-lg);
+        }
+
+        .quick-actions {
+            padding: var(--spacing-lg);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+
+        @media (max-width: 768px) {
+            .quick-actions {
+                flex-direction: column;
+            }
+
+            .quick-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 
 <body>
     <?php include('../includes/header.php'); ?>
 
-    <div class="container mt-xl">
-        <div class="mb-xl">
-            <h1>Admin Dashboard</h1>
-            <p>Manage exams, users, and system settings.</p>
+    <div class="container mt-xl mb-xl">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+            <p>Welcome back, <strong><?php echo htmlspecialchars($firstName . ' ' . $lastName); ?></strong>! Manage exams, users, and system settings.</p>
         </div>
 
         <?php if (isset($_SESSION['delete_success'])): ?>
@@ -60,12 +109,13 @@ $lastName = $row['last_name'] ?? '';
         <div class="card mb-xl">
             <div class="card-header">
                 <h2 class="card-title"><i class="fas fa-bolt"></i> Quick Actions</h2>
+                <p class="card-subtitle">Common administrative tasks</p>
             </div>
-            <div>
+            <div class="quick-actions">
                 <a href="../users/profile.php" class="btn btn-primary">
                     <i class="fas fa-user-circle"></i> My Profile
                 </a>
-                <a href="../exams/addExam.php" class="btn btn-secondary">
+                <a href="../exams/addExam.php" class="btn btn-success">
                     <i class="fas fa-plus-circle"></i> Add New Exam
                 </a>
                 <a href="#manage-exams" class="btn btn-outline">
@@ -84,6 +134,7 @@ $lastName = $row['last_name'] ?? '';
         <div class="card mb-xl" id="manage-exams">
             <div class="card-header">
                 <h2 class="card-title"><i class="fas fa-file-alt"></i> Manage Exams</h2>
+                <p class="card-subtitle">All examinations in the system</p>
             </div>
             <div class="table-container">
                 <table class="table">
@@ -119,8 +170,8 @@ $lastName = $row['last_name'] ?? '';
                                       <td>' . htmlspecialchars($row['scheduled_at'] ?? 'Not scheduled') . '</td>
                                       <td>
                                           <div style="display: flex; gap: 0.5rem;">
-                                              <a href="../exams/updateExam.php?updateid=' . $row['id'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
-                                              <a href="../exams/deleteExam.php?deleteid=' . $row['id'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this exam?\')"><i class="fas fa-trash"></i></a>
+                                              <a href="../exams/updateExam.php?updateid=' . $row['id'] . '" class="btn btn-sm btn-primary" title="Edit Exam"><i class="fas fa-edit"></i></a>
+                                              <a href="../exams/deleteExam.php?deleteid=' . $row['id'] . '" class="btn btn-sm btn-error" onclick="return confirm(\'Are you sure you want to delete this exam?\')" title="Delete Exam"><i class="fas fa-trash"></i></a>
                                           </div>
                                       </td>
                                   </tr>';
@@ -138,6 +189,7 @@ $lastName = $row['last_name'] ?? '';
         <div class="card mb-xl" id="staff">
             <div class="card-header">
                 <h2 class="card-title"><i class="fas fa-users"></i> All Users</h2>
+                <p class="card-subtitle">Manage system users and their roles</p>
             </div>
             <div class="table-container">
                 <table class="table">
@@ -172,8 +224,8 @@ $lastName = $row['last_name'] ?? '';
                                     <td>' . $statusBadge . '</td>
                                     <td>
                                         <div style="display: flex; gap: 0.5rem;">
-                                            <a href="../users/updateStaff.php?updateid=' . $row['id'] . '" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
-                                            <a href="../users/deleteStaff.php?deleteid=' . $row['id'] . '" class="btn btn-sm btn-secondary" onclick="return confirm(\'Are you sure you want to delete this user?\')"><i class="fas fa-trash"></i></a>
+                                            <a href="../users/updateStaff.php?updateid=' . $row['id'] . '" class="btn btn-sm btn-primary" title="Edit User"><i class="fas fa-edit"></i></a>
+                                            <a href="../users/deleteStaff.php?deleteid=' . $row['id'] . '" class="btn btn-sm btn-error" onclick="return confirm(\'Are you sure you want to delete this user?\')" title="Delete User"><i class="fas fa-trash"></i></a>
                                         </div>
                                     </td>
                                     </tr>';
@@ -191,6 +243,7 @@ $lastName = $row['last_name'] ?? '';
         <div class="card mb-xl" id="messages">
             <div class="card-header">
                 <h2 class="card-title"><i class="fas fa-envelope"></i> User Messages</h2>
+                <p class="card-subtitle">Complaints, feedback, and reports from users</p>
             </div>
             <div class="table-container">
                 <table class="table">

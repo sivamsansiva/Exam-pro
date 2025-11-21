@@ -70,6 +70,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Exam - ExamPro</title>
+    <link rel="stylesheet" href="../styles/core.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .exam-form-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        .form-grid-full {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -79,87 +104,100 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <!-- Add Exam Content -->
     <div class="container mt-xl mb-xl">
-        <div class="card">
-            <div class="card-header">
-                <h1 class="card-title"><i class="fas fa-plus-circle"></i> Add Exam</h1>
-                <p class="card-subtitle">Create a new examination</p>
-            </div>
-            <div class="card-body">
-                <?php if ($error): ?>
-                    <div class="alert alert-error mb-lg">
-                        <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?>
-                    </div>
-                <?php endif; ?>
+        <div class="exam-form-wrapper">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title"><i class="fas fa-plus-circle"></i> Add Exam</h1>
+                    <p class="card-subtitle">Create a new examination</p>
+                </div>
+                <div class="card-body">
+                    <?php if ($error): ?>
+                        <div class="alert alert-error mb-lg">
+                            <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?>
+                        </div>
+                    <?php endif; ?>
 
-                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
 
-                    <div class="form-group">
-                        <label for="code" class="form-label">Exam Code</label>
-                        <input type="text" id="code" name="code" class="form-control" required placeholder="e.g., IT101">
-                    </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="code" class="form-label">Exam Code</label>
+                                <input type="text" id="code" name="code" class="form-control" required placeholder="e.g., IT101">
+                            </div>
 
-                    <div class="form-group">
-                        <label for="name" class="form-label">Exam Name</label>
-                        <input type="text" id="name" name="name" class="form-control" required placeholder="Enter Exam Name">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea id="description" name="description" class="form-control" rows="3" placeholder="Enter exam description"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="department_id" class="form-label">Department</label>
-                        <?php
-                        $sql = "SELECT id, name FROM department ORDER BY name";
-                        $result = $conn->query($sql);
-                        if ($result && $result->num_rows > 0) {
-                        ?>
-                            <select name="department_id" id="department_id" class="form-control" required>
-                                <option value="" disabled selected>Select Department</option>
+                            <div class="form-group">
+                                <label for="department_id" class="form-label">Department</label>
                                 <?php
-                                while ($row = $result->fetch_assoc()) {
-                                    echo "<option value=\"" . htmlspecialchars($row['id']) . "\">" . htmlspecialchars($row['name']) . "</option>";
+                                $sql = "SELECT id, name FROM department ORDER BY name";
+                                $result = $conn->query($sql);
+                                if ($result && $result->num_rows > 0) {
+                                ?>
+                                    <select name="department_id" id="department_id" class="form-control" required>
+                                        <option value="" disabled selected>Select Department</option>
+                                        <?php
+                                        while ($row = $result->fetch_assoc()) {
+                                            echo "<option value=\"" . htmlspecialchars($row['id']) . "\">" . htmlspecialchars($row['name']) . "</option>";
+                                        }
+                                        ?>
+                                    </select>
+                                <?php
+                                } else {
+                                    echo "<p class='text-error'>No departments found.</p>";
                                 }
                                 ?>
-                            </select>
-                        <?php
-                        } else {
-                            echo "<p class='text-error'>No departments found.</p>";
-                        }
-                        ?>
-                    </div>
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="quiz_password" class="form-label">Quiz Password</label>
-                        <input type="text" id="quiz_password" name="quiz_password" class="form-control" required placeholder="Enter Quiz Password">
-                        <small class="field-hint">Candidates will need this password to start the exam</small>
-                    </div>
+                        <div class="form-group">
+                            <label for="name" class="form-label">Exam Name</label>
+                            <input type="text" id="name" name="name" class="form-control" required placeholder="Enter Exam Name">
+                        </div>
 
-                    <div class="form-group">
-                        <label for="duration" class="form-label">Duration (minutes)</label>
-                        <input type="number" name="duration" id="duration" class="form-control" min="1" max="300" value="60" required>
-                    </div>
+                        <div class="form-group">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea id="description" name="description" class="form-control" rows="3" placeholder="Enter exam description"></textarea>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="scheduled_at" class="form-label">Scheduled Date & Time</label>
-                        <input type="datetime-local" id="scheduled_at" name="scheduled_at" class="form-control">
-                    </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="quiz_password" class="form-label">Quiz Password</label>
+                                <input type="text" id="quiz_password" name="quiz_password" class="form-control" required placeholder="Enter Quiz Password">
+                                <small class="field-hint">Candidates will need this password to start the exam</small>
+                            </div>
 
-                    <div class="form-group">
-                        <label for="total_questions" class="form-label">Total Questions</label>
-                        <input type="number" id="total_questions" name="total_questions" class="form-control" min="1" value="10" required>
-                    </div>
+                            <div class="form-group">
+                                <label for="duration" class="form-label">Duration (minutes)</label>
+                                <input type="number" name="duration" id="duration" class="form-control" min="1" max="300" value="60" required>
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="max_score" class="form-label">Maximum Score</label>
-                        <input type="number" step="0.01" id="max_score" name="max_score" class="form-control" value="100.00" required>
-                    </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="scheduled_at" class="form-label">Scheduled Date & Time</label>
+                                <input type="datetime-local" id="scheduled_at" name="scheduled_at" class="form-control">
+                            </div>
 
-                    <button type="submit" name="submit" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add Exam
-                    </button>
-                </form>
+                            <div class="form-group">
+                                <label for="total_questions" class="form-label">Total Questions</label>
+                                <input type="number" id="total_questions" name="total_questions" class="form-control" min="1" value="10" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="max_score" class="form-label">Maximum Score</label>
+                            <input type="number" step="0.01" id="max_score" name="max_score" class="form-control" value="100.00" required>
+                        </div>
+
+                        <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-xl);">
+                            <button type="submit" name="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Exam
+                            </button>
+                            <a href="javascript:history.back()" class="btn btn-outline">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

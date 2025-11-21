@@ -39,7 +39,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Feedback</title>
+    <title>Contact Us - ExamPro</title>
+    <link rel="stylesheet" href="../styles/core.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .contact-form-wrapper {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-accent-600) 100%);
+            color: white;
+            padding: var(--spacing-2xl);
+            text-align: center;
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+        }
+    </style>
 </head>
 
 <body>

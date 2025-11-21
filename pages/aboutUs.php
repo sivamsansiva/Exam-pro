@@ -17,6 +17,38 @@ if (!isset($_SESSION['email'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us - ExamPro</title>
+    <link rel="stylesheet" href="../styles/core.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-accent-600) 100%);
+            color: white;
+            padding: var(--spacing-3xl) var(--spacing-xl);
+            text-align: center;
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bold);
+        }
+
+        .about-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+        }
+    </style>
 </head>
 
 <body>
@@ -30,11 +62,6 @@ if (!isset($_SESSION['email'])) {
     <div class="container mt-4 mb-4">
         <div class="text-center mb-4">
             <h1 class="mb-2">About Us</h1>
-            <div class="d-flex justify-content-center gap-2">
-                <a href="aboutUs.php" class="btn btn-primary btn-sm">About Us</a>
-                <a href="privacy.php" class="btn btn-outline btn-sm">Privacy & Policy</a>
-                <a href="terms.php" class="btn btn-outline btn-sm">Terms & Conditions</a>
-            </div>
         </div>
 
         <div class="card mb-4">

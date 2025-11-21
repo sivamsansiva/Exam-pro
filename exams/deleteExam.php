@@ -5,13 +5,13 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['email']) || $_SESSION['role'] == 'staff'){
+if (!isset($_SESSION['email']) || $_SESSION['role'] == 'staff') {
     header("Location: ../auth/login.php");
     exit();
 }
 
 // Delete Exam Operation
-if(isset($_GET['deleteid'])){
+if (isset($_GET['deleteid'])) {
     $examId = (int)$_GET['deleteid'];
 
     // Check if any staff has registered for this exam
@@ -26,11 +26,9 @@ if(isset($_GET['deleteid'])){
 
         if ($_SESSION['role'] == 'manager') {
             header('Location: ../dashboards/manager_dashboard.php');
-        }
-        elseif ($_SESSION['role'] == 'admin') {
+        } elseif ($_SESSION['role'] == 'admin') {
             header('Location: ../dashboards/admin_dashboard.php');
-        }
-        elseif ($_SESSION['role'] == 'examiner') {
+        } elseif ($_SESSION['role'] == 'examiner') {
             header('Location: ../dashboards/examiner_dashboard.php');
         }
         exit();
@@ -42,8 +40,7 @@ if(isset($_GET['deleteid'])){
 
         if ($_SESSION['role'] == 'manager') {
             header('Location: ../dashboards/manager_dashboard.php');
-        }
-        elseif ($_SESSION['role'] == 'admin') {
+        } elseif ($_SESSION['role'] == 'admin') {
             header('Location: ../dashboards/admin_dashboard.php');
         }
         exit();
@@ -53,14 +50,12 @@ if(isset($_GET['deleteid'])){
     $stmt->bind_param("i", $examId);
     $result = $stmt->execute();
 
-    if($result){
+    if ($result) {
         $_SESSION['delete_success'] = 'Exam deleted successfully.';
         header('Location: ../dashboards/examiner_dashboard.php');
-    }else{
+    } else {
         $_SESSION['delete_error'] = 'Error deleting exam: ' . $conn->error;
         header('Location: ../dashboards/examiner_dashboard.php');
     }
     exit();
 }
-
-?>

@@ -44,6 +44,55 @@ $totalMessages = mysqli_fetch_assoc($totalMessagesResult)['total'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Dashboard - ExamPro</title>
+    <link rel="stylesheet" href="../styles/core.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--color-warning-600) 0%, var(--color-primary-600) 100%);
+            color: white;
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--spacing-xl);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .dashboard-header h1 {
+            margin: 0 0 var(--spacing-xs) 0;
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+        }
+
+        .dashboard-header p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: var(--font-size-base);
+        }
+
+        .card-header {
+            background: linear-gradient(to right, var(--color-secondary-50), white);
+            border-bottom: 2px solid var(--color-secondary-100);
+            padding: var(--spacing-lg);
+        }
+
+        .quick-actions {
+            padding: var(--spacing-lg);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+
+        @media (max-width: 768px) {
+            .quick-actions {
+                flex-direction: column;
+            }
+
+            .quick-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 
 <body>
